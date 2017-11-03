@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Eleon.Modding;
-using ProtoBuf;
 
 namespace XangosBackpackModule
 {
@@ -82,7 +81,6 @@ namespace XangosBackpackModule
                         LogFile("chat.txt", "Player " + pd.id + " DisConnected");
                         vBackpackDictionary.Remove(pd.id);
                         break;
-                    case CmdId.Event_Player_List:
                     case CmdId.Event_Player_Info:
                         PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
                         if (BackpackChatDictionary.ContainsKey(PlayerInfoReceived.entityId))
@@ -112,7 +110,6 @@ namespace XangosBackpackModule
                             }
                         }
                         break;
-                    case CmdId.Event_Player_Inventory:
                     case CmdId.Event_Player_ItemExchange:
                         ItemExchangeInfo exchangeInfo = (ItemExchangeInfo)data;
                         vBackpackDictionary[exchangeInfo.id] = exchangeInfo.items;
@@ -123,26 +120,6 @@ namespace XangosBackpackModule
                         }
                         step = "itemExchange complete";
                         break;
-                    case CmdId.Event_Player_Credits:
-                    case CmdId.Event_Player_ChangedPlayfield:
-                    case CmdId.Event_Player_GetAndRemoveInventory:
-                    case CmdId.Event_Playfield_List:
-                    case CmdId.Event_Playfield_Stats:
-                    case CmdId.Event_Playfield_Loaded:
-                    case CmdId.Event_Playfield_Unloaded:
-                    case CmdId.Event_Playfield_Entity_List:
-                    case CmdId.Event_Dedi_Stats:
-                    case CmdId.Event_GlobalStructure_List:
-                    case CmdId.Event_Entity_PosAndRot:
-                    case CmdId.Event_Faction_Changed:
-                        FactionChangeInfo factionChange = (FactionChangeInfo)data;
-                        GameAPI.Game_Request(CmdId.Request_Get_Factions, (ushort)CmdId.Request_Get_Factions, new Id(1));
-                        break;
-                    case CmdId.Event_Get_Factions:
-                        FactionInfoList factioninfo = (FactionInfoList)data;
-                        break;
-                    case CmdId.Event_Statistics:
-                    case CmdId.Event_NewEntityId:
                     case CmdId.Event_Player_DisconnectedWaiting:
                         Id pdw = new Id();
                         GameAPI.Console_Write("Player " + pdw.id + " Failed Login Attempt");
@@ -162,16 +139,6 @@ namespace XangosBackpackModule
                             step = "Request Playerinfo";
                         }
                         break;
-                    case CmdId.Event_Structure_BlockStatistics:
-                    case CmdId.Event_AlliancesAll:
-                    case CmdId.Event_AlliancesFaction:
-                    case CmdId.Event_BannedPlayers:
-                    case CmdId.Event_TraderNPCItemSold:
-                    case CmdId.Event_Ok:
-                        /*
-                        LogFile("CurrentProject.txt", "Event OK: " + step);
-                        break;
-                        */
                     case CmdId.Event_Error:
                         ErrorInfo err = (ErrorInfo)data;
                         ErrorType err2 = (ErrorType)data;
