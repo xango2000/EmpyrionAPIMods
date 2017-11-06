@@ -14,6 +14,12 @@ namespace XangosBackpackModule
         public IDictionary<int, ItemStack[]> vBackpackDictionary = new Dictionary<int, ItemStack[]>(){};
         public ItemStack[] EmptyExchange = new ItemStack[0];
         public Dictionary<int, string> BackpackChatDictionary = new Dictionary<int, string>() { };
+        public Dictionary<int, string> IDDictionary = new Dictionary<int, string>() { };
+        public Dictionary<int, string> SendDictionary = new Dictionary<int, string>() { };
+        public Dictionary<int, string> RewardDictionary = new Dictionary<int, string>() { };
+        public Dictionary<int, string> InboxDictionary = new Dictionary<int, string>() { };
+        public Dictionary<int, string> WhichItemExchange = new Dictionary<int, string>() { };
+        public List<List<string>> CommandSetup;
 
         ModGameAPI GameAPI;
 
@@ -39,9 +45,9 @@ namespace XangosBackpackModule
             System.IO.File.AppendAllText("Content\\Mods\\Xango\\"+FileName, FileData2);
         }
 
-        private void buildItemStack(int playerId, string job)
+        public ItemStack[] buildItemStack(int playerId, string job)
         {
-            string[] bagLines = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\players\\EID" + Convert.ToString(playerId) + "\\VirtualBackpack.txt");
+            string[] bagLines = System.IO.File.ReadAllLines(job);
             int itemStackSize = bagLines.Count();
             ItemStack[] itStack = new ItemStack[itemStackSize];
             for (int i = 0; i < itemStackSize; ++i)
@@ -53,7 +59,64 @@ namespace XangosBackpackModule
 
             }
             vBackpackDictionary.Add(playerId, itStack);
-            //return itStack;
+            return itStack;
+        }
+
+        struct SetupData
+        {
+            private string Admin;
+            private List<string> File;
+            private List<string> BlockedOnPlayfieldsFile;
+            private string Math ;
+        }
+        
+            private void LoadSetup()
+        {
+            string[] SetupFile = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\setup.txt");
+            //int SetupSize = SetupFile.Count();
+            //loop thru SetupFile
+            for (int i = 0; i < SetupFile.Count(); ++i)
+            {
+                //if line starts with Space, line is command setting
+                if (SetupFile[i].StartsWith("    "))
+                {
+                    string[] FileLine = SetupFile[i].Split(Convert.ToChar(":"));
+                    if (FileLine[0] == "    Admin")
+                    {
+                        string CommandParameter = "Admin";
+                        string CommandValue = FileLine[1];
+                    }
+                    else if (FileLine[0] == "    File")
+                    {
+                        string CommandParameter = "File";
+                        string[] CommandFile = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\CommandFiles\\" + FileLine[0]);
+                    }
+                    else if (FileLine[0] == "    BlockedOnPlayfieldsFile")
+                    {
+                        string CommandParameter = "BlockedOnPlayfieldsFile";
+                        string[] CommandFile = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\CommandFiles\\" + FileLine[0]);
+
+                    }
+                    else if (FileLine[0] == "    Math")
+                    {
+                        string CommandParameter = "Math";
+                        string CommandValue = FileLine[1];
+                    }
+                    else if (FileLine[0] == "    Enabled")
+                    {
+                        string CommandParameter = "Enabled";
+                        Boolean CommandValue = Convert.ToBoolean(FileLine[1]);
+                    }
+
+                }
+                //else, line is command
+                else
+                {
+                    string[] FileLine = SetupFile[i].Split(Convert.ToChar(":"));
+                    string Command = FileLine[0];
+                }
+
+            }
         }
 
         public void Game_Start(ModGameAPI gameAPI)
@@ -170,26 +233,50 @@ namespace XangosBackpackModule
                                 {
                                     LogFile("Chat.txt", "Build Blank Backpack");
                                     System.IO.File.Create("Content\\Mods\\Xango\\players\\EID" + Convert.ToString(PlayerInfoReceived.entityId) + "\\VirtualBackpack.txt");
-                                    buildItemStack(PlayerInfoReceived.entityId, "blank");
+                                    EmptyExchange = buildItemStack(PlayerInfoReceived.entityId, "Content\\Mods\\Xango\\players\\EID" + Convert.ToString(PlayerInfoReceived.entityId) + "\\VirtualBackpack.txt");
                                     //System.Threading.Thread.Sleep(5000);
-                                    //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", EmptyExchange));
+                                    GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", EmptyExchange));
                                     //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", vBackpackDictionary[PlayerInfoReceived.entityId]));
                                 }
                             }
+                            WhichItemExchange[PlayerInfoReceived.clientId] = "Backpack";
                         }
-                        /*
-                            }
-                            else if (chatCommand.StartsWith("/id"))
-                            {
-                                LogFile("plys.txt", "/id");
-                                        LogFile("plys.txt", "Plys List Requested");
-                                        chatCommand = "";
-                                        GameAPI.Game_Request(CmdId.Request_Get_Factions, (ushort)CmdId.Request_Get_Factions, new Id(1));
-                                        GameAPI.Game_Request(CmdId.Request_Player_List, (ushort)CmdId.Request_Player_List, null);
-                            };
+                        if (IDDictionary.ContainsKey(PlayerInfoReceived.entityId))
+                        {
+                            GameAPI.Game_Request(CmdId.Request_Get_Factions, (ushort)CmdId.Request_Get_Factions, new Id(1));
+                            GameAPI.Game_Request(CmdId.Request_Player_List, (ushort)CmdId.Request_Player_List, null);
                         }
-                        */
+
                         
+                        if (SendDictionary.ContainsKey(PlayerInfoReceived.entityId))
+                        {
+                            var Message = SendDictionary[PlayerInfoReceived.entityId].Split(new[] { ' ' }, 2);
+                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + Message[0], Message[1], "Send", EmptyExchange));
+                            //string timestamp = Convert.ToString(DateTime.Now);
+                            //System.IO.File.Create("Content\\Mods\\Xango\\Mail\\" + timestamp + ".txt");
+                            //string MailEntry = timestamp + " " + PlayerInfoReceived.entityId + "," + "New" + "," + Message[1];
+                            //Prep inventory to write to file
+                            //System.IO.File.AppendAllText("Content\\Mods\\Xango\\EID" + Message[0] + "\\mail.txt", "data");
+                            WhichItemExchange[PlayerInfoReceived.clientId] = "MailSend";
+                        }
+                        if (RewardDictionary.ContainsKey(PlayerInfoReceived.entityId))
+                        {
+                            WhichItemExchange[PlayerInfoReceived.clientId] = "MailReward";
+                        }
+                        if (InboxDictionary.ContainsKey(PlayerInfoReceived.entityId))
+                        {
+                            string[] UserMail = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId + "\\mail.txt");
+                            string[] FirstMessage = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\Mail\\" + UserMail[0] + ".txt");
+                            //string MailEntry = timestamp + " " + exchangeInfo.id + "," + "New" + "," + Message[1];
+                            string[] InboxMessage = FirstMessage[0].Split(new[] { ' ' }, 4);
+                            ItemStack[] MessageInventory = buildItemStack(PlayerInfoReceived.entityId, "Content\\Mods\\Xango\\Mail\\" + InboxMessage[0] + ".txt");
+                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "From: " + InboxMessage[1], InboxMessage[3], "Close", MessageInventory));
+                            //WIP
+                            //System.IO.File.ReadAllLines("Content\\Mods\\Xango\\Mail\\" + "something");
+                            WhichItemExchange[PlayerInfoReceived.clientId] = "MailInbox";
+                        }
+
+
                         System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId+ "\\PlayerInfo.txt", string.Empty);
                         LogFile("players\\EID" + PlayerInfoReceived.entityId+ "\\PlayerInfo.txt", "playerName= " + Convert.ToString(PlayerInfoReceived.playerName));
                         LogFile("players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", "entityId= " + Convert.ToString(PlayerInfoReceived.entityId));
@@ -254,33 +341,62 @@ namespace XangosBackpackModule
                         */
                         break;
                     case CmdId.Event_Player_Inventory:
-                        
+                        break;
                     case CmdId.Event_Player_ItemExchange:
                         ItemExchangeInfo exchangeInfo = (ItemExchangeInfo)data;
-                        vBackpackDictionary[exchangeInfo.id] = exchangeInfo.items;
-                        //Rewrite: Cant delete and write this quickly
-                        System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", string.Empty);
-                        //System.IO.File.Delete("Content\\Mods\\Xango\\players\\EID" +exchangeInfo.id + "\\VirtualBackpack.txt");
-                        for (int i = 0; i <= exchangeInfo.items.Count(); i++)
+                        if (WhichItemExchange[exchangeInfo.id] == "Backpack")
                         {
-                            //LogFile("ExchangeData.txt", Convert.ToString(exchangeInfo.items[i].id));
-                            LogFile("players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
+                            vBackpackDictionary[exchangeInfo.id] = exchangeInfo.items;
+                            System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", string.Empty);
+                            for (int i = 0; i <= exchangeInfo.items.Count(); i++)
+                            {
+                                //LogFile("ExchangeData.txt", Convert.ToString(exchangeInfo.items[i].id));
+                                LogFile("players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
+                            }
+                            step = "itemExchange complete";
                         }
-                        step = "itemExchange complete";
+                        //WIP
+                        else if (WhichItemExchange[exchangeInfo.id] == "MailSend")
+                        {
+                            string timestamp = Convert.ToString(DateTime.Now);
+                            System.IO.File.Create("Content\\Mods\\Xango\\Mail\\" + timestamp + ".txt");
+                            var Message = SendDictionary[Convert.ToInt32(exchangeInfo.title)].Split(new[] { ' ' }, 2);
+                            string MailEntry = timestamp + " " + exchangeInfo.id + "," + "New" + "," + Message[1];
+                            //Prep inventory to write to file
+                            for (int i = 0; i <= exchangeInfo.items.Count(); i++)
+                            {
+                                //LogFile("ExchangeData.txt", Convert.ToString(exchangeInfo.items[i].id));
+                                LogFile("players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
+                            }
+                            System.IO.File.AppendAllText("Content\\Mods\\Xango\\EID" + Message[1] + "\\mail.txt", "data" + Environment.NewLine);
+                        }
+                        else if (WhichItemExchange[exchangeInfo.id] == "MailInbox")
+                        {
 
-
-                        break;
+                        }
+                            break;
                     case CmdId.Event_Player_Credits:
+                        break;
                     case CmdId.Event_Player_ChangedPlayfield:
+                        break;
                     case CmdId.Event_Player_GetAndRemoveInventory:
+                        break;
                     case CmdId.Event_Playfield_List:
+                        break;
                     case CmdId.Event_Playfield_Stats:
+                        break;
                     case CmdId.Event_Playfield_Loaded:
+                        break;
                     case CmdId.Event_Playfield_Unloaded:
+                        break;
                     case CmdId.Event_Playfield_Entity_List:
+                        break;
                     case CmdId.Event_Dedi_Stats:
+                        break;
                     case CmdId.Event_GlobalStructure_List:
+                        break;
                     case CmdId.Event_Entity_PosAndRot:
+                        break;
                     case CmdId.Event_Faction_Changed:
                         FactionChangeInfo factionChange = (FactionChangeInfo)data;
                         GameAPI.Game_Request(CmdId.Request_Get_Factions, (ushort)CmdId.Request_Get_Factions, new Id(1));
@@ -292,7 +408,9 @@ namespace XangosBackpackModule
                         //FactionInfoDict.Add("FactionDump", factioninfo);
                         break;
                     case CmdId.Event_Statistics:
+                        break;
                     case CmdId.Event_NewEntityId:
+                        break;
                     case CmdId.Event_Player_DisconnectedWaiting:
                         Id pdw = new Id();
                         GameAPI.Console_Write("Player " + pdw.id + " Failed Login Attempt");
@@ -316,27 +434,50 @@ namespace XangosBackpackModule
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
                             step = "Request Playerinfo";
                         }
-                        /*
                         else if (ci.msg.StartsWith("/id"))
                         {
                             IDDictionary[ci.playerId] = ci.msg;
-                            //chatCommand = ci.msg;
-                            //chatSpeaker = ci.playerId;
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
                             step = "Request Playerinfo";
-                        };
-                        */
+                        }
+                        else if (ci.msg.StartsWith("/inbox"))
+                        {
+                            IDDictionary[ci.playerId] = ci.msg;
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            step = "Request Playerinfo";
+                        }
+                        else if (ci.msg.StartsWith("/send"))
+                        {
+                            IDDictionary[ci.playerId] = ci.msg;
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            step = "Request Playerinfo";
+                        }
+                        else if (ci.msg.StartsWith("/reward"))
+                        {
+                            IDDictionary[ci.playerId] = ci.msg;
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            step = "Request Playerinfo";
+                        }
+
+                        ;
+
                         break;
                     case CmdId.Event_Structure_BlockStatistics:
+                        break;
                     case CmdId.Event_AlliancesAll:
+                        break;
                     case CmdId.Event_AlliancesFaction:
+                        break;
                     case CmdId.Event_BannedPlayers:
+                        break;
                     case CmdId.Event_TraderNPCItemSold:
+                        break;
                     case CmdId.Event_Ok:
                         /*
                         LogFile("CurrentProject.txt", "Event OK: " + step);
                         break;
                         */
+                        break;
                     case CmdId.Event_Error:
                         ErrorInfo err = (ErrorInfo)data;
                         ErrorType err2 = (ErrorType)data;
