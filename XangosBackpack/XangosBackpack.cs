@@ -11,19 +11,19 @@ namespace XangosBackpackModule
 
     public class XangosBackpack : ModInterface
     {
-        public string step;
+        //public string step;
         public IDictionary<int, ItemStack[]> vBackpackDictionary = new Dictionary<int, ItemStack[]>(){};
         public ItemStack[] EmptyExchange = new ItemStack[0];
         public Dictionary<int, string> ItemExchangeSwitch = new Dictionary<int, string>() { };
-        public List<int> PlysList;
-        public FactionInfoList FactionListDump;
-        public List<List<string>> CommandSetup;
+        //public List<int> PlysList;
+        //public FactionInfoList FactionListDump;
+        //public List<List<string>> CommandSetup;
         public Dictionary<string, ItemStack[]> MailDictionary = new Dictionary<string, ItemStack[]>() { };
         public Dictionary<string, Players> PlayerDictionary = new Dictionary<string, Players> { };
-        public Dictionary<string, PlayfieldStats> PFData = new Dictionary<string, PlayfieldStats> { };
-        public Dictionary<string, Permissions> PermissionsDictionary = new Dictionary<string, Permissions> { };
+        //public Dictionary<string, PlayfieldStats> PFData = new Dictionary<string, PlayfieldStats> { };
+        //public Dictionary<string, Permissions> PermissionsDictionary = new Dictionary<string, Permissions> { };
         public Dictionary<string, Int32> PlayfieldIDDict = new Dictionary<string, Int32> { };
-        private List<int> RegenAsteroids;
+        //private List<int> RegenAsteroids;
 
 
         ModGameAPI GameAPI;
@@ -287,11 +287,13 @@ namespace XangosBackpackModule
                 MailDictionary[filename] = MailContents;
                 //MailDictionary.Add(file.Name, MailContents);
             }
+            /*
             PermissionsDictionary["Send"] = Permission.PermissionData("send");
             LogFile("chat.txt", "Send permissions loaded");
             PermissionsDictionary["Backpack"] = Permission.PermissionData("backpack");
             PermissionsDictionary["Find"] = Permission.PermissionData("find");
             PermissionsDictionary["Inbox"] = Permission.PermissionData("inbox");
+            */
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
@@ -303,7 +305,7 @@ namespace XangosBackpackModule
                     case CmdId.Event_Player_Connected:
                         Id pc = (Id)data;
                         GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(pc.id));
-
+                        try { System.IO.Directory.CreateDirectory("Content\\Mods\\Xango\\players\\EID" + pc.id); } catch { };
                         try
                         { string[] bagLines = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\players\\EID" + pc.id + "\\VirtualBackpack.txt");
                             int itemStackSize = bagLines.Count();
@@ -318,21 +320,18 @@ namespace XangosBackpackModule
                             }
                             vBackpackDictionary.Add(pc.id, itStack);
                         }
-                        catch { };
+                        catch { System.IO.File.Create("Content\\Mods\\Xango\\players\\EID" + Convert.ToString(pc.id) + "\\VirtualBackpack.txt"); }; //New player, create backpack... i think this will work
                         LogFile("chat.txt", "Player " + pc.id + " Connected");
-                        try { System.IO.Directory.CreateDirectory("Content\\Mods\\Xango\\players\\EID" + pc.id); } catch { };
-
                         if (System.IO.File.Exists("Content\\Mods\\Xango\\players\\EID" + pc.id + "\\Mail.txt")) { }
                         else { System.IO.File.Create("Content\\Mods\\Xango\\players\\EID" + pc.id + "\\Mail.txt"); }
-                        //try { System.IO.File.Create("Content\\Mods\\Xango\\players\\EID" + pc.id + "\\Mail.txt"); } catch { };
-
                         break;
                     case CmdId.Event_Player_Disconnected:
                         Id pd = (Id)data;
                         LogFile("chat.txt", "Player " + pd.id + " DisConnected");
-                        vBackpackDictionary.Remove(pd.id);
+                        try { vBackpackDictionary.Remove(pd.id); } catch { }
                         break;
                     case CmdId.Event_Player_List:
+                        /*
                         IdList PlayerIDs = (IdList)data;
                         //WIP add to /find
                         foreach (var player in PlayerIDs.list)
@@ -340,6 +339,7 @@ namespace XangosBackpackModule
                             PlysList.Add(Convert.ToInt32(player));
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Id(player));
                         }
+                        */
                         break;
                     case CmdId.Event_Player_Info:
                         //LogFile("Chat.txt", "Start Event_Player_Info");
@@ -347,49 +347,31 @@ namespace XangosBackpackModule
 
                         //WIP
                         PlayerDictionary[PlayerInfoReceived.playerName] = PlayerData.playerData(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
-
-
-                        /*
-                        if (PlysList.Contains(Convert.ToInt32(PlayerInfoReceived.entityId)) == true)
+                        if (PlayerInfoReceived.steamId == "76561198117632903") //"Godmode" for Xango while testing mod
                         {
-                            PlysList.Remove(Convert.ToInt32(PlayerInfoReceived.entityId));
-                            var factionabbr = Convert.ToString(PlayerInfoReceived.factionId);
-                            if (PlayerInfoReceived.factionId == PlayerInfoReceived.entityId)
+                            GameAPI.Game_Request(CmdId.Request_Player_SetPlayerInfo, (ushort)CmdId.Request_Player_SetPlayerInfo, new Eleon.Modding.PlayerInfoSet()
                             {
-                                Messenger("ChatAsServer", 0, IDRequestor[0], PlayerInfoReceived.entityId + "  [   ]  " + PlayerInfoReceived.playerName + "  PF=" + PlayerInfoReceived.playfield, 0);
-                                IDRequestor.Remove(IDRequestor[0]);
-                                LogFile("plys.txt", PlayerInfoReceived.entityId + "  [   ]  " + PlayerInfoReceived.playerName + "  PlayField=" + PlayerInfoReceived.playfield);
-                            }
-                            else
-                            {
-                                foreach (FactionInfo faction in FactionListDump.factions)
-                                {
-                                    if (faction.factionId == PlayerInfoReceived.factionId)
-                                    {
-                                        factionabbr = faction.abbrev;
-                                    }
-                                    Messenger("ChatAsServer", 0, IDRequestor[0], PlayerInfoReceived.entityId + "  [" + factionabbr + "]  " + PlayerInfoReceived.playerName + "  PF=" + PlayerInfoReceived.playfield, 0);
-                                    IDRequestor.Remove(IDRequestor[0]);
-                                    LogFile("plys.txt", PlayerInfoReceived.entityId + "  [" + PlayerInfoReceived.factionId + "]  " + PlayerInfoReceived.playerName + "  PF=" + PlayerInfoReceived.playfield);
-                                    break;
-                                }
-                            }
+                                entityId = PlayerInfoReceived.entityId,
+                                oxygenMax = Convert.ToInt32(PlayerInfoReceived.oxygen),
+                                radiation = 0,
+                                food = +5000,
+                                stamina = +5000,
+                                bodyTemp = 30,
+                                health = +5000
+                            });
                         }
-                        */
-                        //LogFile("Chat.txt", "BackpackDictionary starts here");
-                        //if (BackpackChatDictionary.ContainsKey(PlayerInfoReceived.entityId))
                         if (ItemExchangeSwitch.ContainsKey(PlayerInfoReceived.entityId))
                         {
                             if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/backpack"))
                             {
                                 if (seqNr == 1167)
                                 {
+                                    LogFile("chat.txt", seqNr + " Triggered");
                                     //BackpackChatDictionary.Remove(PlayerInfoReceived.entityId);
                                     if (vBackpackDictionary.ContainsKey(PlayerInfoReceived.entityId))
                                     {
                                         //LogFile("Chat.txt", "show backpack");
                                         GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", vBackpackDictionary[PlayerInfoReceived.entityId]));
-                                        step = "Request ItemExchange";
                                     }
                                     else
                                     {
@@ -416,136 +398,132 @@ namespace XangosBackpackModule
                         }
                         if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/find"))
                         {
-                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + "Test Received" + "'"));
-                            List<string> Target = NameFragment(ItemExchangeSwitch[PlayerInfoReceived.entityId]);
-                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target0:" + Target[0] + "'"));
+                            if (seqNr == 1168)
+                            {
+                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + "Test Received" + "'"));
+                                List<string> Target = NameFragment(ItemExchangeSwitch[PlayerInfoReceived.entityId]);
+                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target0:" + Target[0] + "'"));
 
-                            if (Target.Count == 0) //Error
-                            {
-                                //WIP
-                                string nomsg = "No Players Found";
-                                GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 10));
-                                ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
-                            }
-                            else //Actual player's Empyrion ID
-                            {
-                                foreach (string SID in PlayerDictionary.Keys)
+                                if (Target.Count == 0) //Error
                                 {
-                                    if (Target.Contains(SID))
-                                    {
-                                        Players SpecificTarget = PlayerDictionary[SID];
-                                        string msg = "[" + SpecificTarget.FactionID + "]" + SpecificTarget.PlayerName + " @" + SpecificTarget.Playfield + " " + SpecificTarget.x + "," + SpecificTarget.y + "," + SpecificTarget.z + " #" + SpecificTarget.EmpyrionID;
-                                        GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + msg + "'"));
-                                    }
-                                    else
-                                    {
-                                        //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Contains=False'"));
-                                    };
-                                    }
-                            }
-                            ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
-                        }
-
-                        if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/send"))
-                        {
-                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Send Started'"));
-                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + Convert.ToInt32(PlayerInfoReceived.permission) + "'"));
-                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + Convert.ToInt32(PermissionsDictionary["Send"].Admin) + "'"));
-
-                            /*
-                            if (Convert.ToInt32(PermissionsDictionary["Send"].Admin) < Convert.ToInt32(PlayerInfoReceived.permission))
-                            {
-                                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Pass 1'"));
-                                LogFile("chat.txt", "Permission Pass");
-                            }
-                            else
-                            {
-                                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Fail 1'"));
-                                LogFile("chat.txt", "Permission Fail");
-                            }
-                            */
-
-                            List<string> Target = NameFragment(ItemExchangeSwitch[PlayerInfoReceived.entityId]);
-                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Count = " + Target.Count + "'"));
-                            if (Target.Count == 1)
-                            {
-                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Count = " + Target.Count + "'"));
-                                var SenderMessage = ItemExchangeSwitch[PlayerInfoReceived.entityId].Split(new[] { ' ' }, 3);
-                                if (SenderMessage.Count() == 3)
-                                {
-                                    GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, SenderMessage[2], "Send", EmptyExchange));
-                                }
-                                else if (SenderMessage.Count() == 2)
-                                {
-                                    GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, "[No Message]", "Send", EmptyExchange));
-                                }
-                                else if (SenderMessage.Count() == 1)
-                                {
-                                    GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Usage: /send Xango2000 Message that player receives\r\nOR /send Xan Anything you want to say\r\nOR /send 12345\r\nSubject not required. Can use part of the player name or their empyrion ID", 0, 10));
+                                    //WIP
+                                    string nomsg = "No Players Found";
+                                    GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 10));
                                     ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
                                 }
-                                //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 10));
-                            }
-                            else
-                            {
-                                GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Recipient Count Must Be Exactly One", 0, 10));
+                                else //Actual player's Empyrion ID
+                                {
+                                    foreach (string SID in PlayerDictionary.Keys)
+                                    {
+                                        if (Target.Contains(SID))
+                                        {
+                                            Players SpecificTarget = PlayerDictionary[SID];
+                                            string msg = "[" + SpecificTarget.FactionID + "]" + SpecificTarget.PlayerName + " @" + SpecificTarget.Playfield + " " + SpecificTarget.x + "," + SpecificTarget.y + "," + SpecificTarget.z + " #" + SpecificTarget.EmpyrionID;
+                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + msg + "'"));
+                                        }
+                                        else
+                                        {
+                                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Contains=False'"));
+                                        };
+                                    }
+                                }
                                 ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
                             }
-                            //LogFile("chat.txt", "SendDictionary in PlayerInfoReceived triggered");
-                            //var Message = ItemExchangeSwitch[PlayerInfoReceived.entityId].Split(new[] { ' ' }, 3);
-                            //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + Message[1], Message[2], "Send", EmptyExchange));
+                        }
+                        if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/send"))
+                        {
+                            if (seqNr == 1170)
+                            {
+                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Send Started'"));
+                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + Convert.ToInt32(PlayerInfoReceived.permission) + "'"));
+                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + Convert.ToInt32(PermissionsDictionary["Send"].Admin) + "'"));
+
+                                /*
+                                if (Convert.ToInt32(PermissionsDictionary["Send"].Admin) < Convert.ToInt32(PlayerInfoReceived.permission))
+                                {
+                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Pass 1'"));
+                                    LogFile("chat.txt", "Permission Pass");
+                                }
+                                else
+                                {
+                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Fail 1'"));
+                                    LogFile("chat.txt", "Permission Fail");
+                                }
+                                */
+
+                                List<string> Target = NameFragment(ItemExchangeSwitch[PlayerInfoReceived.entityId]);
+                                //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Count = " + Target.Count + "'"));
+                                if (Target.Count == 1)
+                                {
+                                    //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Count = " + Target.Count + "'"));
+                                    var SenderMessage = ItemExchangeSwitch[PlayerInfoReceived.entityId].Split(new[] { ' ' }, 3);
+                                    if (SenderMessage.Count() == 3)
+                                    {
+                                        GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, SenderMessage[2], "Send", EmptyExchange));
+                                    }
+                                    else if (SenderMessage.Count() == 2)
+                                    {
+                                        GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, "[No Message]", "Send", EmptyExchange));
+                                    }
+                                    else if (SenderMessage.Count() == 1)
+                                    {
+                                        GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Usage: /send Xango2000 Message that player receives\r\nOR /send Xan Anything you want to say\r\nOR /send 12345\r\nSubject not required. Can use part of the player name or their empyrion ID", 0, 10));
+                                        ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
+                                    }
+                                    //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 10));
+                                }
+                                else
+                                {
+                                    GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Recipient Count Must Be Exactly One", 0, 10));
+                                    ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
+                                }
+                                //LogFile("chat.txt", "SendDictionary in PlayerInfoReceived triggered");
+                                //var Message = ItemExchangeSwitch[PlayerInfoReceived.entityId].Split(new[] { ' ' }, 3);
+                                //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + Message[1], Message[2], "Send", EmptyExchange));
+                            }
                         }
                         if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/reward"))
                         {
-                            //WhichItemExchange[PlayerInfoReceived.clientId] = "MailReward";
+                            if (seqNr == 1173)
+                            {
+                                //WhichItemExchange[PlayerInfoReceived.clientId] = "MailReward";
+                            }
                         }
                         if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/inbox"))
                         {
-                            //WIP
-                            //LogFile("chat.txt", "InboxDictionary in PlayerInfoReceived triggered");
-                            string[] UserMail = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId + "\\mail.txt"); //pull up user mail
-                            //LogFile("chat.txt", "UserMail 0 =" + UserMail[0]);
-                            var Message = UserMail[0].Split(new[] { ',' }, 4); //split first line of user mail: Timestamp, Sender, New?, Message
-                            /*
-                            LogFile("chat.txt", "Message 0 =" + Message[0]);
-                            LogFile("chat.txt", "Message 1 =" + Message[1]);
-                            LogFile("chat.txt", "Message 2 =" + Message[2]);
-                            LogFile("chat.txt", "Message 3 =" + Message[3]);
-                            LogFile("chat.txt", "MailDictionary lookup =" + "Content\\Mods\\Xango\\Mail\\" + Message[0] + ".txt");
-                            LogFile("chat.txt", "MailDictionary lookup =" + Convert.ToString(MailDictionary[Message[0]]));
-                            */
-                            //ItemStack[] MailContents = buildItemStack("Content\\Mods\\Xango\\Mail\\" + Message[0] + ".txt");
-                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "From: " + Message[1], Message[3], "Close", MailDictionary[Message[0]]));
+                            if (seqNr == 1169)
+                            {
+                                //WIP
+                                //LogFile("chat.txt", "InboxDictionary in PlayerInfoReceived triggered");
+                                string[] UserMail = System.IO.File.ReadAllLines("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId + "\\mail.txt"); //pull up user mail
+                                                                                                                                                                    //LogFile("chat.txt", "UserMail 0 =" + UserMail[0]);
+                                var Message = UserMail[0].Split(new[] { ',' }, 4); //split first line of user mail: Timestamp, Sender, New?, Message
+                                                                                   /*
+                                                                                   LogFile("chat.txt", "Message 0 =" + Message[0]);
+                                                                                   LogFile("chat.txt", "Message 1 =" + Message[1]);
+                                                                                   LogFile("chat.txt", "Message 2 =" + Message[2]);
+                                                                                   LogFile("chat.txt", "Message 3 =" + Message[3]);
+                                                                                   LogFile("chat.txt", "MailDictionary lookup =" + "Content\\Mods\\Xango\\Mail\\" + Message[0] + ".txt");
+                                                                                   LogFile("chat.txt", "MailDictionary lookup =" + Convert.ToString(MailDictionary[Message[0]]));
+                                                                                   */
+                                                                                   //ItemStack[] MailContents = buildItemStack("Content\\Mods\\Xango\\Mail\\" + Message[0] + ".txt");
+                                GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "From: " + Message[1], Message[3], "Close", MailDictionary[Message[0]]));
+                            }
                         }
-                        
                         else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/factory"))
                         {
-                            List<int> BPkeys = new List<int>(PlayerInfoReceived.bpResourcesInFactory.Keys);
-                            //LogFile("chat.txt", "BlueprintResources=" + BPkeys);
-                            ItemStack[] itStack = new ItemStack[PlayerInfoReceived.bpResourcesInFactory.Keys.Count];
-                            for (int i = 0; i < PlayerInfoReceived.bpResourcesInFactory.Keys.Count; ++i)
+                            if (seqNr == 1172)
                             {
-                                itStack[i] = new ItemStack(Convert.ToInt32(PlayerInfoReceived.bpResourcesInFactory), Convert.ToInt32(PlayerInfoReceived.bpResourcesInFactory[BPkeys[i]]));
+                                List<int> BPkeys = new List<int>(PlayerInfoReceived.bpResourcesInFactory.Keys);
+                                //LogFile("chat.txt", "BlueprintResources=" + BPkeys);
+                                ItemStack[] itStack = new ItemStack[PlayerInfoReceived.bpResourcesInFactory.Keys.Count];
+                                for (int i = 0; i < PlayerInfoReceived.bpResourcesInFactory.Keys.Count; ++i)
+                                {
+                                    itStack[i] = new ItemStack(Convert.ToInt32(PlayerInfoReceived.bpResourcesInFactory), Convert.ToInt32(PlayerInfoReceived.bpResourcesInFactory[BPkeys[i]]));
+                                }
+                                GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Factory", "Found this in your factory, thought you might want it back", "Close", itStack));
                             }
-                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Factory", "Found this in your factory, thought you might want it back", "Close", itStack));
                         }
-
-                        if (PlayerInfoReceived.steamId == "76561198117632903")
-                        {
-
-                            GameAPI.Game_Request(CmdId.Request_Player_SetPlayerInfo, (ushort)CmdId.Request_Player_SetPlayerInfo, new Eleon.Modding.PlayerInfoSet()
-                            {
-                                entityId = PlayerInfoReceived.entityId,
-                                oxygenMax = Convert.ToInt32(PlayerInfoReceived.oxygen),
-                                radiation = 0,
-                                food = +5000,
-                                stamina = +5000,
-                                bodyTemp = 30,
-                                health = +5000
-                            });
-                        }
-
-
                         System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", string.Empty);
                         LogFile("players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", "playerName= " + Convert.ToString(PlayerInfoReceived.playerName));
                         LogFile("players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", "entityId= " + Convert.ToString(PlayerInfoReceived.entityId));
@@ -689,82 +667,80 @@ namespace XangosBackpackModule
                     case CmdId.Event_Playfield_List:
                         break;
                     case CmdId.Event_Playfield_Stats:
-                        PlayfieldStats PFStats = (PlayfieldStats)data;
-                        PFData[PFStats.playfield] = PFStats;
+                        //PlayfieldStats PFStats = (PlayfieldStats)data;
+                        //PFData[PFStats.playfield] = PFStats;
                         break;
                     case CmdId.Event_Playfield_Loaded:
-                        PlayfieldLoad LoadedPlayfield = (PlayfieldLoad)data;
-                        //GameAPI.Game_Request(CmdId.Request_Playfield_Stats, (ushort)CmdId.Request_Playfield_Stats, new Eleon.Modding.PString(LoadedPlayfield.playfield));
-                        //GameAPI.Game_Request(CmdId.Request_Playfield_Entity_List, (ushort)CmdId.Request_Playfield_Entity_List, new Eleon.Modding.IdPlayfield(LoadedPlayfield.processId,LoadedPlayfield.playfield));
-                        //GameAPI.Game_Request(CmdId.Request_GlobalStructure_List, (ushort)CmdId.Request_GlobalStructure_List, "");
-                        GameAPI.Game_Request(CmdId.Request_GlobalStructure_Update, 2436, new Eleon.Modding.PString(LoadedPlayfield.playfield));
-                        LogFile("chat.txt", LoadedPlayfield.processId + " " + LoadedPlayfield.playfield);
-                        PlayfieldIDDict[LoadedPlayfield.playfield] = LoadedPlayfield.processId;
+                        try
+                        {
+                            PlayfieldLoad LoadedPlayfield = (PlayfieldLoad)data;
+                            //GameAPI.Game_Request(CmdId.Request_Playfield_Stats, (ushort)CmdId.Request_Playfield_Stats, new Eleon.Modding.PString(LoadedPlayfield.playfield));
+                            //GameAPI.Game_Request(CmdId.Request_Playfield_Entity_List, (ushort)CmdId.Request_Playfield_Entity_List, new Eleon.Modding.IdPlayfield(LoadedPlayfield.processId,LoadedPlayfield.playfield));
+                            //GameAPI.Game_Request(CmdId.Request_GlobalStructure_List, (ushort)2436, new Eleon.Modding.PString(""));
+                            GameAPI.Game_Request(CmdId.Request_GlobalStructure_Update, 2436, new Eleon.Modding.PString(LoadedPlayfield.playfield));
+                            LogFile("chat.txt", LoadedPlayfield.processId + " " + LoadedPlayfield.playfield);
+                            try { PlayfieldIDDict[LoadedPlayfield.playfield] = LoadedPlayfield.processId; }
+                            catch { LogFile("chat.txt", "Failed adding playfield to PlayfieldIDDict: " + LoadedPlayfield.playfield); }
+                        }
+                        catch { }
                         break;
                     case CmdId.Event_Playfield_Unloaded:
                         break;
                     case CmdId.Event_Playfield_Entity_List:
                         PlayfieldEntityList PFList = (PlayfieldEntityList)data;
-                        
-                        LogFile("chat.txt", "PFList Start");
-                        /*
-                        List<EntityInfo> entslist = PFList.entities;
-                        //string Playfield = PFList.playfield;
-                        foreach (EntityInfo Entity in entslist)
-                        {
-                            LogFile("chat.txt", Entity.id + " is a " + Entity.type + " at " + Entity.pos.x + "," + Entity.pos.y + "," + Entity.pos.z);
-                            //WIP
-                        }
-                        */
                         break;
                     case CmdId.Event_Dedi_Stats:
                         break;
                     case CmdId.Event_GlobalStructure_List:
-                        GlobalStructureList Structs = (GlobalStructureList)data;
-                        LogFile("chat.txt", "GlobalStructure_List Triggered");
                         if (seqNr == 2436)
                         {
+                            GlobalStructureList Structs = (GlobalStructureList)data;
+                            LogFile("chat.txt", seqNr + " Triggered");
                             foreach (string playfieldName in Structs.globalStructures.Keys)
                             {
                                 foreach (GlobalStructureInfo item in Structs.globalStructures[playfieldName])
                                 {
-                                    //LogFile("Chat.txt", "Item.Type=" + item.type + " " + item.id + " " + item.name + " " + PlayfieldIDDict[playfieldName]);
                                     if (item.type == 7)
                                     {
                                         LogFile("Chat.txt", "Regenerate Type=" + item.type + " ID=" + item.id + " Called:" + item.name + " On:" + PlayfieldIDDict[playfieldName]);
                                         GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("remoteex pf=" + PlayfieldIDDict[playfieldName] + "' regenerate " + item.id + "'"));
-                                        /*
-                                        if (RegenAsteroids.Contains(item.id))
-                                        {
-                                        }
-                                        else
-                                        { 
-                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("remoteex pf=" + PlayfieldIDDict[playfieldName] + "' regenerate " + item.id + "'"));
-                                            LogFile("Chat.txt", "Regenerated Type=" + item.type + " ID=" + item.id + " Called:" + item.name + " On:" + PlayfieldIDDict[playfieldName]);
-                                            RegenAsteroids.Add(item.id);
-                                        }
-                                        */
+                                    }
+                                }
+                            }
+                        }
+                        else if (seqNr == 2437)
+                        {
+                            GlobalStructureList Structs = (GlobalStructureList)data;
+                            LogFile("chat.txt", seqNr + " Triggered");
+                            foreach (string playfieldName in Structs.globalStructures.Keys)
+                            {
+                                foreach (GlobalStructureInfo item in Structs.globalStructures[playfieldName])
+                                {
+                                    if (item.type == 7)
+                                    {
+                                        LogFile("Chat.txt", "Regenerate Type=" + item.type + " ID=" + item.id + " Called:" + item.name + " On:" + PlayfieldIDDict[playfieldName]);
+                                        GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("remoteex pf=" + PlayfieldIDDict[playfieldName] + "' regenerate " + item.id + "'"));
                                     }
                                 }
 
                             }
-
                         }
-                        //GlobalStructureInfo funk = (GlobalStructureInfo)data;
-                        //List<GlobalStructureInfo> PlayList = Structs.globalStructures;
-
-                        break;
+                            break;
                     case CmdId.Event_Entity_PosAndRot:
                         break;
                     case CmdId.Event_Faction_Changed:
+                        /*
                         FactionChangeInfo factionChange = (FactionChangeInfo)data;
                         GameAPI.Game_Request(CmdId.Request_Get_Factions, (ushort)CmdId.Request_Get_Factions, new Id(1));
+                        */
                         break;
                     case CmdId.Event_Get_Factions:
+                        /*
                         FactionInfoList factioninfo = (FactionInfoList)data;
                         FactionListDump = factioninfo;
                         //FactionInfoDict.Remove("FactionDump");
                         //FactionInfoDict.Add("FactionDump", factioninfo);
+                        */
                         break;
                     case CmdId.Event_Statistics:
                         break;
@@ -772,7 +748,7 @@ namespace XangosBackpackModule
                         break;
                     case CmdId.Event_Player_DisconnectedWaiting:
                         Id pdw = new Id();
-                        GameAPI.Console_Write("Player " + pdw.id + " Failed Login Attempt");
+                        LogFile("Chat.txt", "FAILED LOGIN:  Player=" + pdw.id);
                         break;
                     case CmdId.Event_ChatMessage:
                         ChatInfo ci = (ChatInfo)data;
@@ -804,12 +780,12 @@ namespace XangosBackpackModule
                         {
                             //LogFile("chat.txt", "/find command received");
                             ItemExchangeSwitch[ci.playerId] = cimsg;
-                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1168, new Eleon.Modding.Id(ci.playerId));
                         }
                         else if (cimsg.StartsWith("/inbox"))
                         {
                             ItemExchangeSwitch[ci.playerId] = cimsg;
-                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1169, new Eleon.Modding.Id(ci.playerId));
                             //LogFile("chat.txt", "/inbox command received");
                             //step = "Request Playerinfo";
                         }
@@ -817,23 +793,23 @@ namespace XangosBackpackModule
                         {
                             //LogFile("chat.txt", "/send command received");
                             ItemExchangeSwitch[ci.playerId] = cimsg;
-                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1170, new Eleon.Modding.Id(ci.playerId));
                             //step = "Request Playerinfo";
                             //LogFile("chat.txt", "/send complete, requesting player info");
                         }
                         else if (cimsg.StartsWith("/reward"))
                         {
                             ItemExchangeSwitch[ci.playerId] = cimsg;
-                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1173, new Eleon.Modding.Id(ci.playerId));
                             //step = "Request Playerinfo";
                         }
-                        else if (cimsg.StartsWith("s! /test"))
+                        else if (cimsg.StartsWith(".../test"))
                         {
                             //LogFile("chat.txt", "/test");
                             //string msg = "Loading, please stand by...";
                             //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(ci.playerId, msg, 0, 10));
-                            
-                            GameAPI.Game_Request(CmdId.Request_Player_SetPlayerInfo, (ushort)CmdId.Request_Player_SetPlayerInfo, new Eleon.Modding.PlayerInfoSet()
+                            GameAPI.Game_Request(CmdId.Request_GlobalStructure_List, (ushort)2437, new Eleon.Modding.PString(""));
+                            GameAPI.Game_Request(CmdId.Request_Player_SetPlayerInfo, (ushort)1171, new Eleon.Modding.PlayerInfoSet()
                             {
                                 entityId = ci.playerId,
                                 oxygenMax = 375,
@@ -860,7 +836,7 @@ namespace XangosBackpackModule
                         {
                             //LogFile("chat.txt", "/factory");
                             ItemExchangeSwitch[ci.playerId] = cimsg;
-                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CmdId.Request_Player_Info, new Eleon.Modding.Id(ci.playerId));
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1172, new Eleon.Modding.Id(ci.playerId));
                         };
 
                         break;
@@ -886,7 +862,7 @@ namespace XangosBackpackModule
                         //try { Messenger("Alert", 0, 0, "Error Info " + Convert.ToString(err), 1000); } catch { };
                         //try { Messenger("Alert", 0, 0, "Error Type " + Convert.ToString(err2), 1000); } catch { };
                         
-                        LogFile("ERROR.txt", Convert.ToString(err2) + ": " + Convert.ToString(err));
+                        LogFile("ERROR.txt", "ERROR: " + Convert.ToString(err2) + ": " + Convert.ToString(err));
                         break;
                     default:
                         break;
@@ -894,7 +870,13 @@ namespace XangosBackpackModule
             }
             catch (Exception ex)
             {
-                GameAPI.Console_Write(ex.Message);
+                LogFile("ERROR.txt", "Exception: " + ex.Message);
+                LogFile("ERROR.txt", "Exception: " + ex.Data);
+                LogFile("ERROR.txt", "Exception: " + ex.HelpLink);
+                LogFile("ERROR.txt", "Exception: " + ex.InnerException);
+                LogFile("ERROR.txt", "Exception: " + ex.Source);
+                LogFile("ERROR.txt", "Exception: " + ex.StackTrace);
+                LogFile("ERROR.txt", "Exception: " + ex.TargetSite);
             }
 
         }
