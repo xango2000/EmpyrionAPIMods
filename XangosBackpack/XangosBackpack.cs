@@ -459,7 +459,14 @@ namespace XangosBackpackModule
                                         var SenderMessage = ItemExchangeSwitch[PlayerInfoReceived.entityId].Split(new[] { ' ' }, 3);
                                         if (SenderMessage.Count() == 3)
                                         {
-                                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, SenderMessage[2], "Send", EmptyExchange));
+                                            if (PlayerInfoReceived.entityId == PlayerDictionary[Target[0]].EmpyrionID)
+                                            {
+                                                GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Sending to yourself is not possible.", 0, 10));
+                                            }
+                                            else
+                                            {
+                                                GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, SenderMessage[2], "Send", EmptyExchange));
+                                            }
                                         }
                                         else if (SenderMessage.Count() == 2)
                                         {
