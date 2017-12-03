@@ -396,7 +396,7 @@ namespace XangosBackpackModule
                             //LogFile("chat.txt", "IDDictionary starts here");
                             //if (IDDictionary.ContainsKey(PlayerInfoReceived.entityId) == true)
 
-                            if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/find"))
+                            else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/find"))
                             {
                                 if (seqNr == 1168)
                                 {
@@ -430,7 +430,7 @@ namespace XangosBackpackModule
                                     ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
                                 }
                             }
-                            if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/send"))
+                            else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/send"))
                             {
                                 if (seqNr == 1170)
                                 {
@@ -465,7 +465,7 @@ namespace XangosBackpackModule
                                             }
                                             else
                                             {
-                                                GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].EmpyrionID, SenderMessage[2], "Send", EmptyExchange));
+                                                GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + PlayerDictionary[Target[0]].PlayerName, SenderMessage[2], "Send", EmptyExchange));
                                             }
                                         }
                                         else if (SenderMessage.Count() == 2)
@@ -489,14 +489,14 @@ namespace XangosBackpackModule
                                     //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "To: " + Message[1], Message[2], "Send", EmptyExchange));
                                 }
                             }
-                            if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/reward"))
+                            else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/reward"))
                             {
                                 if (seqNr == 1173)
                                 {
                                     //WhichItemExchange[PlayerInfoReceived.clientId] = "MailReward";
                                 }
                             }
-                            if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/inbox"))
+                            else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/inbox"))
                             {
                                 if (seqNr == 1169)
                                 {
@@ -514,7 +514,8 @@ namespace XangosBackpackModule
                                                                                        LogFile("chat.txt", "MailDictionary lookup =" + Convert.ToString(MailDictionary[Message[0]]));
                                                                                        */
                                                                                        //ItemStack[] MailContents = buildItemStack("Content\\Mods\\Xango\\Mail\\" + Message[0] + ".txt");
-                                    GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "From: " + Message[1], Message[3], "Close", MailDictionary[Message[0]]));
+                                    List<string> Recipient = NameFragment("blank " + Message[1]);
+                                    GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "From: " + PlayerDictionary[Recipient[0]].PlayerName, Message[3], "Close", MailDictionary[Message[0]]));
                                 }
                             }
                             else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/factory"))
@@ -531,8 +532,23 @@ namespace XangosBackpackModule
                                     GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Factory", "Found this in your factory, thought you might want it back", "Close", itStack));
                                 }
                             }
+                            else if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/resource"))
+                            {
+                                if (seqNr == 1174)
+                                {
+                                    //ServerSay(0, Convert.ToString(PlayerInfoReceived.permission) + " 2");
+                                    if (PlayerInfoReceived.permission == 9)
+                                    {
+                                        //ServerSay(0, "9=9");
+                                        GameAPI.Game_Request(CmdId.Request_GlobalStructure_Update, 2437, new Eleon.Modding.PString(PlayerInfoReceived.playfield));
+                                        //GameAPI.Game_Request(CmdId.Request_GlobalStructure_List, (ushort)2437, new Eleon.Modding.PString(""));
+                                    }
+
+                                }
+                                ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
+                            }
                         }
-                        System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", string.Empty);
+                                System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", string.Empty);
                         LogFile("players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", "playerName= " + Convert.ToString(PlayerInfoReceived.playerName));
                         LogFile("players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", "entityId= " + Convert.ToString(PlayerInfoReceived.entityId));
                         LogFile("players\\EID" + PlayerInfoReceived.entityId + "\\PlayerInfo.txt", "permission= " + Convert.ToString(PlayerInfoReceived.permission));
@@ -593,7 +609,7 @@ namespace XangosBackpackModule
                                 System.IO.File.WriteAllText("Content\\Mods\\Xango\\players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", string.Empty);
                                 for (int i = 0; i <= exchangeInfo.items.Count(); i++)
                                 {
-                                    //LogFile("players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
+                                    LogFile("players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
                                 }
                                 //step = "itemExchange complete";
                                 ItemExchangeSwitch[exchangeInfo.id] = "blank";
@@ -686,7 +702,7 @@ namespace XangosBackpackModule
                             //GameAPI.Game_Request(CmdId.Request_Playfield_Entity_List, (ushort)CmdId.Request_Playfield_Entity_List, new Eleon.Modding.IdPlayfield(LoadedPlayfield.processId,LoadedPlayfield.playfield));
                             //GameAPI.Game_Request(CmdId.Request_GlobalStructure_List, (ushort)2436, new Eleon.Modding.PString(""));
                             GameAPI.Game_Request(CmdId.Request_GlobalStructure_Update, 2436, new Eleon.Modding.PString(LoadedPlayfield.playfield));
-                            LogFile("chat.txt", LoadedPlayfield.processId + " " + LoadedPlayfield.playfield);
+                            LogFile("chat.txt", "Load Playfield ProcessID=" + LoadedPlayfield.processId + " Playfield=" + LoadedPlayfield.playfield);
                             try { PlayfieldIDDict[LoadedPlayfield.playfield] = LoadedPlayfield.processId; }
                             catch { LogFile("chat.txt", "Failed adding playfield to PlayfieldIDDict: " + LoadedPlayfield.playfield); }
                         }
@@ -722,10 +738,13 @@ namespace XangosBackpackModule
                             LogFile("chat.txt", seqNr + " Triggered");
                             foreach (string playfieldName in Structs.globalStructures.Keys)
                             {
+                                //ServerSay(0, "Regenerating Asteroids 0");
                                 foreach (GlobalStructureInfo item in Structs.globalStructures[playfieldName])
                                 {
+                                    //ServerSay(0, "Regenerating Asteroids 1");
                                     if (item.type == 7)
                                     {
+                                        //ServerSay(0, "Regenerating Asteroids 2");
                                         LogFile("Chat.txt", "Regenerate Type=" + item.type + " ID=" + item.id + " Called:" + item.name + " On:" + PlayfieldIDDict[playfieldName]);
                                         GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("remoteex pf=" + PlayfieldIDDict[playfieldName] + "' regenerate " + item.id + "'"));
                                     }
@@ -756,7 +775,7 @@ namespace XangosBackpackModule
                         break;
                     case CmdId.Event_Player_DisconnectedWaiting:
                         Id pdw = new Id();
-                        LogFile("Chat.txt", "FAILED LOGIN:  Player=" + pdw.id);
+                        LogFile("ERROR.txt", "FAILED LOGIN:  Player=" + pdw.id);
                         break;
                     case CmdId.Event_ChatMessage:
                         ChatInfo ci = (ChatInfo)data;
@@ -811,12 +830,14 @@ namespace XangosBackpackModule
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1173, new Eleon.Modding.Id(ci.playerId));
                             //step = "Request Playerinfo";
                         }
-                        else if (cimsg.StartsWith(".../test"))
+                        else if (cimsg.StartsWith("/resource"))
                         {
+                            ItemExchangeSwitch[ci.playerId] = cimsg;
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1174, new Eleon.Modding.Id(ci.playerId));
                             //LogFile("chat.txt", "/test");
                             //string msg = "Loading, please stand by...";
                             //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(ci.playerId, msg, 0, 10));
-                            GameAPI.Game_Request(CmdId.Request_GlobalStructure_List, (ushort)2437, new Eleon.Modding.PString(""));
+                            /*
                             GameAPI.Game_Request(CmdId.Request_Player_SetPlayerInfo, (ushort)1171, new Eleon.Modding.PlayerInfoSet()
                             {
                                 entityId = ci.playerId,
@@ -827,7 +848,7 @@ namespace XangosBackpackModule
                                 bodyTemp = 30,
                                 health = +5000
                             });
-                            
+                            */
                             //GameAPI.Game_Request(CmdId.Request_Playfield_Entity_List, (ushort)CmdId.Request_Playfield_Entity_List, new Eleon.Modding.IdPlayfield("Akua"));
                             //GameAPI.Game_Request(CmdId.Request_Playfield_Entity_List, (ushort)CmdId.Request_Playfield_Entity_List, new Eleon.Modding.IdPlayfield(ci.playerId, "Akua"));
                             /*
@@ -837,17 +858,23 @@ namespace XangosBackpackModule
                                 GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + ci.playerId + " '" + PlayerDictionary[thing].EmpyrionID + "'"));
                                 try { GameAPI.Game_Request(CmdId.Request_Playfield_List, (ushort)CmdId.Request_Playfield_List, "blank"); }catch { };
                             }
+
 */
                         }
-                        
+
                         else if (cimsg.StartsWith("/factory"))
                         {
                             //LogFile("chat.txt", "/factory");
                             ItemExchangeSwitch[ci.playerId] = cimsg;
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1172, new Eleon.Modding.Id(ci.playerId));
+                        }
+                        else if (cimsg.StartsWith("/admin"))
+                        {
+                            //ItemExchangeSwitch[ci.playerId] = cimsg;
+                            //GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1175, new Eleon.Modding.Id(ci.playerId));
                         };
 
-                        break;
+                            break;
                     case CmdId.Event_Structure_BlockStatistics:
                         break;
                     case CmdId.Event_AlliancesAll:
