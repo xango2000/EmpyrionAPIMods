@@ -7,8 +7,8 @@
     <ProjectGuid>{89FB6254-C940-4925-87B5-0F6CBC370B44}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>XangosBackpack</RootNamespace>
-    <AssemblyName>XangosBackpack</AssemblyName>
+    <RootNamespace>XangosAPITool</RootNamespace>
+    <AssemblyName>XangosAPITool</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -55,20 +55,32 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="XangosBackpack.cs" />
+    <Compile Include="Commons.cs" />
+    <Compile Include="Config\Configuration.cs" />
+    <Compile Include="XangosAPITool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\Mortlath\sample-empyrion-mod\DeathMessenger\dependencies\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="Mif, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\egs dedicated\EmpyrionDedicated_Data\Managed\Mif.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\SteamApps\common\Empyrion - Dedicated Server\EmpyrionDedicated_Data\Managed\Mif.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net, Version=2.0.0.668, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\egs dedicated\EmpyrionDedicated_Data\Managed\protobuf-net.dll</HintPath>
     </Reference>
+    <Reference Include="SharedCode">
+      <HintPath>..\..\Mortlath\SharedCode\bin\Debug\SharedCode.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Settings.yaml" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.105.2\build\net20\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.105.2\build\net20\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
