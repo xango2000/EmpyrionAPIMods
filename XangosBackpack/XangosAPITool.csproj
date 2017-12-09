@@ -72,9 +72,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\egs dedicated\EmpyrionDedicated_Data\Managed\protobuf-net.dll</HintPath>
     </Reference>
-    <Reference Include="SharedCode">
-      <HintPath>..\..\Mortlath\SharedCode\bin\Debug\SharedCode.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

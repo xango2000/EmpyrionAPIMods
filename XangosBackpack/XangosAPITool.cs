@@ -4,7 +4,7 @@ using System.Linq;
 using Eleon.Modding;
 using ProtoBuf;
 using YamlDotNet.Serialization;
-using SharedCode;
+
 
 namespace XangosAPIToolModule
 {
@@ -284,8 +284,8 @@ namespace XangosAPIToolModule
         public void Game_Start(ModGameAPI gameAPI)
         {
 
-            var configFilePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\" + "Configuration.yaml";
-            object _config = SharedCode.BaseConfiguration.GetConfiguration<Configuration>(configFilePath);
+            //var configFilePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\" + "Configuration.yaml";
+            //object _config = SharedCode.BaseConfiguration.GetConfiguration<Configuration>(configFilePath);
             //Object _config = GetConfiguration<Configuration>(configFilePath);
 
             LogFile("chat.txt", "Mod Loaded");
@@ -406,6 +406,7 @@ namespace XangosAPIToolModule
                                             //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", vBackpackDictionary[PlayerInfoReceived.entityId]));
                                         }
                                     }
+                                    ItemExchangeSwitch[PlayerInfoReceived.entityId] = "blank";
                                     //WhichItemExchange[PlayerInfoReceived.clientId] = "Backpack";
                                 }
                             }
