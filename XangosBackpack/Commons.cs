@@ -11,6 +11,7 @@ namespace XangosAPIToolModule.Commons
     {
         public Dictionary<string, Players> PlayerDictionary = new Dictionary<string, Players> { };
         ModGameAPI GameAPI;
+        //GameAPI = gameAPI
 
         private void Messenger(String msgType, int Priority, int player, String msg, int Duration)
         {

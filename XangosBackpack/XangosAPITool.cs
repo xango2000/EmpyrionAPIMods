@@ -377,7 +377,7 @@ namespace XangosAPIToolModule
                         }
                         if (ItemExchangeSwitch.ContainsKey(PlayerInfoReceived.entityId))
                         {
-                            if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/backpack"))
+                            if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/bp"))
                             {
                                 if (seqNr == 1167)
                                 {
@@ -611,7 +611,7 @@ namespace XangosAPIToolModule
                         if (ItemExchangeSwitch.ContainsKey(exchangeInfo.id)) //This is the new version, now do parse
                         {
                             var Message = ItemExchangeSwitch[exchangeInfo.id].Split(new[] { ' ' }, 3);
-                            if (Message[0].StartsWith("/backpack"))
+                            if (Message[0].StartsWith("/bp"))
                             {
                                 List<string> UserSIDList = NameFragment("blank " + exchangeInfo.id);
 
@@ -670,7 +670,7 @@ namespace XangosAPIToolModule
                                 System.IO.File.AppendAllText("Content\\Mods\\Xango\\players\\EID" + PlayerDictionary[Recipient[0]].EmpyrionID + "\\Mail.txt", MailEntry + Environment.NewLine);
                                 //MailDictionary.Add(timestamp, exchangeInfo.items);
                                 //LogFile("chat.txt", "Content\\Mods\\Xango\\EID" + PlayerDictionary[Recipient[0]].EmpyrionID + "\\Mail.txt");
-                                AlertPlayer(2, Convert.ToInt32(PlayerDictionary[Recipient[0]].EmpyrionID), "New Mail Received", 5);
+                                AlertPlayer(2, Convert.ToInt32(PlayerDictionary[Recipient[0]].EmpyrionID), "New Mail Received", 3);
                                 //Messenger("Alert", 2, Convert.ToInt32(PlayerDictionary[Recipient[0]].EmpyrionID), "New Mail Received", 5);
 
                             }
@@ -814,10 +814,10 @@ namespace XangosAPIToolModule
                         //LogFile("Chat.txt", ci.playerId + " SAYS: " + cimsg);
                         //string check = Message[0].ToLower();
 
-                        //string.Compare(cimsg, "/backpack", StringComparison.OrdinalIgnoreCase) == 0;
+                        //string.Compare(cimsg, "/bp", StringComparison.OrdinalIgnoreCase) == 0;
                         //string joe = string.Join(" ", cimsg);
 
-                        if (cimsg.StartsWith("/backpack"))
+                        if (cimsg.StartsWith("/bp"))
                         {
                             ItemExchangeSwitch[ci.playerId] = cimsg;
                             //BackpackChatDictionary[ci.playerId] = ci.msg;
@@ -893,9 +893,16 @@ namespace XangosAPIToolModule
                         {
                             //ItemExchangeSwitch[ci.playerId] = cimsg;
                             //GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1175, new Eleon.Modding.Id(ci.playerId));
+                        }
+                        else if (cimsg.StartsWith("/test"))
+                        {
+                            string msg = "Test";
+                            //AlertAll(0, 0, msg, 10);
+                            AlertPlayer(0, 3026, msg, 10);
+                            ServerSay(0, msg);
                         };
 
-                            break;
+                        break;
                     case CmdId.Event_Structure_BlockStatistics:
                         break;
                     case CmdId.Event_AlliancesAll:

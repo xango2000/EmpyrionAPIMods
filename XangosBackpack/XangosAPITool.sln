@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XangosAPITool", "XangosAPITool.csproj", "{89FB6254-C940-4925-87B5-0F6CBC370B44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backpack", "..\ClassLibrary1\Backpack.csproj", "{9B4679A7-D522-42ED-955B-425A4FB5CB6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpGate", "JumpGate\JumpGate.csproj", "{6DA15421-D0E5-40AE-85F5-2CA848653D1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualBackpack", "..\..\VirtualBackpack\XangosBackpack\VirtualBackpack.csproj", "{D0299488-0C40-4FA5-92B6-B6B9C583DADD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,14 +25,22 @@ Global
 		{89FB6254-C940-4925-87B5-0F6CBC370B44}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89FB6254-C940-4925-87B5-0F6CBC370B44}.Release|x86.ActiveCfg = Release|x86
 		{89FB6254-C940-4925-87B5-0F6CBC370B44}.Release|x86.Build.0 = Release|x86
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Debug|x86.Build.0 = Debug|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Release|x86.ActiveCfg = Release|Any CPU
-		{9B4679A7-D522-42ED-955B-425A4FB5CB6E}.Release|x86.Build.0 = Release|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Debug|x86.Build.0 = Debug|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Release|x86.ActiveCfg = Release|Any CPU
+		{6DA15421-D0E5-40AE-85F5-2CA848653D1D}.Release|x86.Build.0 = Release|Any CPU
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Debug|x86.ActiveCfg = Debug|x86
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Debug|x86.Build.0 = Debug|x86
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Release|x86.ActiveCfg = Release|x86
+		{D0299488-0C40-4FA5-92B6-B6B9C583DADD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
