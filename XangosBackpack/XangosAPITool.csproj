@@ -55,7 +55,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commons.cs" />
     <Compile Include="Config\Configuration.cs" />
     <Compile Include="..\..\XangosAPITool\XangosAPITool.cs">
       <Link>XangosAPITool.cs</Link>
