@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XangosAPITool", "XangosAPITool.csproj", "{89FB6254-C940-4925-87B5-0F6CBC370B44}"
 EndProject
@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdminCommands", "..\AdminCo
 	ProjectSection(ProjectDependencies) = postProject
 		{459A9897-8DFF-4083-B14C-2B701146A0CE} = {459A9897-8DFF-4083-B14C-2B701146A0CE}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RacingMod", "..\ClassLibrary1\RacingMod.csproj", "{827353F8-8973-4F86-80EF-57B2D3D16B02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ActiveRadar", "ActiveRadar\ActiveRadar.csproj", "{8C21B76E-6FF3-4395-9BBC-8E506946AD39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +71,22 @@ Global
 		{1742144B-98DE-4569-8A0B-9FE491B73CBE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1742144B-98DE-4569-8A0B-9FE491B73CBE}.Release|x86.ActiveCfg = Release|Any CPU
 		{1742144B-98DE-4569-8A0B-9FE491B73CBE}.Release|x86.Build.0 = Release|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Debug|x86.Build.0 = Debug|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Release|x86.ActiveCfg = Release|Any CPU
+		{827353F8-8973-4F86-80EF-57B2D3D16B02}.Release|x86.Build.0 = Release|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Debug|x86.Build.0 = Debug|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Release|x86.ActiveCfg = Release|Any CPU
+		{8C21B76E-6FF3-4395-9BBC-8E506946AD39}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

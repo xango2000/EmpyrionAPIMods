@@ -17,20 +17,11 @@ namespace VirtualBackpack
         #pragma warning disable 0649
         public static List<Int32> LogonList = new List<Int32>();
         #pragma warning restore 0649
+        ushort SeqNrCounter = 1500;
+        Dictionary<ushort, TrackData> SeqNrDict = new Dictionary<ushort, TrackData> { };
+        ushort NewSeqNr = 1500;
 
         ModGameAPI GameAPI;
-        /*
-        private void Messenger(String msgType, int Priority, int player, String msg, int Duration)
-        {
-            if (msgType == "ChatAsServer")
-            {
-                string command = "SAY '" + msg + "'";
-                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_InGameMessage_AllPlayers, new Eleon.Modding.PString(command));
-            }
-            if (msgType == "Alert")
-                GameAPI.Game_Request(CmdId.Request_InGameMessage_AllPlayers, (ushort)CmdId.Request_InGameMessage_AllPlayers, new IdMsgPrio(player, msg, Convert.ToByte(Priority), Duration));
-        }*/
-
 
         private void LogFile(String FileName, String FileData)
         {
@@ -87,6 +78,35 @@ namespace VirtualBackpack
                 NewPlayer.z = coordZ;
                 NewPlayer.ClientID = clientID;
                 return NewPlayer;
+            }
+        }
+        public ushort GetNewSeqNr()
+        {
+            if (SeqNrCounter == (ushort)35000)
+            {
+                SeqNrCounter = (ushort)1500;
+            }
+            else
+            {
+                SeqNrCounter = (ushort)(SeqNrCounter + 1);
+            }
+            return SeqNrCounter;
+        }
+        public struct TrackData
+        {
+            public ushort seqnr;
+            public object anything;
+            public Eleon.Modding.CmdId requestID;
+        }
+        public class Request
+        {
+            public static TrackData SeqNrTracker(Eleon.Modding.CmdId RequestID, ushort seqNr, object Anything)
+            {
+                TrackData NewData = new TrackData();
+                NewData.seqnr = seqNr;
+                NewData.anything = Anything;
+                NewData.requestID = RequestID;
+                return NewData;
             }
         }
 

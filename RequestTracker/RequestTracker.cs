@@ -17,17 +17,20 @@ namespace Tracker
         {
             //public Int32 trackingID;
             public ushort seqnr;
-            public Int32 empyrionID;
+            public object anything;
             public Eleon.Modding.CmdId requestID;
         }
-        public static TrackData SeqNrTracker(Eleon.Modding.CmdId RequestID, ushort seqNr, Int32 EmpyrionID)
+        public class snTracker
         {
-            TrackData NewData = new TrackData();
-            //NewData.trackingID = TrackingID;
-            NewData.seqnr = seqNr;
-            NewData.empyrionID = EmpyrionID;
-            NewData.requestID = RequestID;
-            return NewData;
+            public static TrackData SeqNrTracker(Eleon.Modding.CmdId RequestID, ushort seqNr, object Anything)
+            {
+                TrackData NewData = new TrackData();
+                //NewData.trackingID = TrackingID;
+                NewData.seqnr = seqNr;
+                NewData.anything = Anything;
+                NewData.requestID = RequestID;
+                return NewData;
+            }
         }
     }
 }
