@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XangosAPITool", "XangosAPITool.csproj", "{89FB6254-C940-4925-87B5-0F6CBC370B44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mailbox", "Mailbox.csproj", "{89FB6254-C940-4925-87B5-0F6CBC370B44}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpGate", "JumpGate\JumpGate.csproj", "{6DA15421-D0E5-40AE-85F5-2CA848653D1D}"
 EndProject

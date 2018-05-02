@@ -7,32 +7,41 @@ using Eleon.Modding;
 using ProtoBuf;
 using System.Collections;
 
+
 namespace ActiveRadar
 {
     public class MyEmpyrionMod : ModInterface
     {
         ModGameAPI GameAPI;
-
+        public string ModVersion = "ActiveRadar v1.0.2";
         public Dictionary<int, radarData> storedInfo = new Dictionary<int, radarData> { };
-        public radarData StoreThisInfo = new radarData();
         public int CurrentSeqNr = 500;
 
         private void LogFile(string FileName, string FileData)
         {
+            if (!System.IO.File.Exists("Content\\Mods\\ActiveRadar\\" + FileName))
+            {
+                System.IO.File.Create("Content\\Mods\\ActiveRadar\\" + FileName);
+            }
             string FileData2 = FileData + Environment.NewLine;
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName + ".txt", FileData2);
+            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName, FileData2);
         }
 
         public class radarData
         {
             public ChatInfo chatData;
-            //public int vesselID;
             public GlobalStructureList structsList;
             public IdStructureBlockInfo vesselInfo;
             public PVector3 coords;
             public PlayerInfo PlayerInfo;
             public int stepCounter;
             public GlobalStructureInfo piloting;
+        }
+
+        public class SensorContacts
+        {
+            public GlobalStructureInfo GlobalStructureInfo;
+            public double Distance;
         }
 
         public int SeqNrGenerator(int LastSeqNr)
@@ -47,15 +56,23 @@ namespace ActiveRadar
                 }
                 newSeqNr = LastSeqNr + 1;
                 if (storedInfo.ContainsKey(newSeqNr)) { Fail = true; }
-                LogFile("debug", Convert.ToString(newSeqNr));
             } while(Fail == true);
             return newSeqNr;
         }
 
+        private static string Sanitize(String input)
+        {
+            string sanitizeMe = input.Replace(" ", "_");
+            sanitizeMe = sanitizeMe.Replace("'", "");
+            sanitizeMe = sanitizeMe.Replace('"', Convert.ToChar("*"));
+            return sanitizeMe;
+        }
 
         public void Game_Start(ModGameAPI gameAPI)
         {
             GameAPI = gameAPI;
+            System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\debug.txt", "");
+            System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\ERROR.txt", "");
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
@@ -66,66 +83,75 @@ namespace ActiveRadar
 
                     case CmdId.Event_ChatMessage:
                         ChatInfo chatInfo = (ChatInfo)data;
-                        LogFile("debug", "Chat Received");
-                        if (chatInfo.msg.StartsWith("scan"))
+                        if (chatInfo.msg.StartsWith("/scan"))
                         {
-                            LogFile("debug", "if chat startswith 'scan'");
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
+                            radarData StoreThisInfo = new radarData();
                             if (storedInfo.ContainsKey(CurrentSeqNr))
                             {
+
                                 StoreThisInfo = storedInfo[CurrentSeqNr];
                                 StoreThisInfo.chatData = chatInfo;
                                 storedInfo[CurrentSeqNr] = StoreThisInfo;
-                                LogFile("debug", "ChatInfo Stored Again?");
                             }
                             else
                             {
-                                try
-                                {
-                                    StoreThisInfo = storedInfo[CurrentSeqNr];
-                                }
-                                catch { }
                                 StoreThisInfo.chatData = chatInfo;
                                 storedInfo.Add(CurrentSeqNr, StoreThisInfo);
-                                LogFile("debug", "ChatInfo Stored");
                             }
-                            LogFile("debug", "Dictionary Entry Added");
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(chatInfo.playerId));
-                            LogFile("debug", "Request " + CurrentSeqNr + " Sent");
+                        }else if(chatInfo.msg.StartsWith("!mods"))
+                        {
+                            radarData StoreThisInfo = new radarData();
+                            StoreThisInfo.chatData = chatInfo;
+                            storedInfo.Add(CurrentSeqNr, StoreThisInfo);
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(chatInfo.playerId));
                         }
                         break;
                     case CmdId.Event_Player_Info:
-                        LogFile("debug", "Player Info Received");
                         if (storedInfo.ContainsKey(seqNr))
                         {
-                            if (storedInfo[seqNr].chatData.msg == "scan")
+                            if (storedInfo[seqNr].chatData.msg == "/scan")
                             {
                                 PlayerInfo playerInfo = (PlayerInfo)data;
                                 if (storedInfo[seqNr].chatData.playerId == playerInfo.entityId)
                                 {
+                                    radarData StoreThisInfo = new radarData();
                                     StoreThisInfo = storedInfo[seqNr];
                                     StoreThisInfo.PlayerInfo = playerInfo;
                                     CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                                     storedInfo[CurrentSeqNr] = StoreThisInfo;
                                     GameAPI.Game_Request(CmdId.Request_GlobalStructure_Update, (ushort)CurrentSeqNr, new Eleon.Modding.PString(playerInfo.playfield));
-                                    LogFile("debug", "Request "+ CurrentSeqNr + " Sent");
-                                    storedInfo.Remove(seqNr);
+                                    try
+                                    {
+                                        storedInfo.Remove(seqNr);
+                                    }
+                                    catch { }
+                                }
+                            } else if (storedInfo[seqNr].chatData.msg == "/scan")
+                            { PlayerInfo playerInfo = (PlayerInfo)data;
+                                if (storedInfo[seqNr].chatData.playerId == playerInfo.entityId)
+                                {
+                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say cl:'" + playerInfo.clientId+ " " + ModVersion + "'"));
+                                    try
+                                    {
+                                        storedInfo.Remove(seqNr);
+                                    }
+                                    catch { }
                                 }
                             }
                         }
                         break;
                     case CmdId.Event_Playfield_Entity_List:
-                        /*
                         if (seqNr == 112)
                         {
                             PlayfieldEntityList pfEntsList = (PlayfieldEntityList)data;
-                            LogFile("debug", "Ents Received");
+                            LogFile("debug.txt", "Ents Received");
                             foreach (var entity in pfEntsList.entities)
                             {
                                 LogFile("pfEntity", Convert.ToString(entity.id));
                             }
                         }
-                        */
                         break;
                     case CmdId.Event_GlobalStructure_List:
                         if (storedInfo.ContainsKey(seqNr))
@@ -133,56 +159,48 @@ namespace ActiveRadar
                             GlobalStructureList Structs = (GlobalStructureList)data;
                             if (Structs.globalStructures.Keys.Contains(storedInfo[seqNr].PlayerInfo.playfield))
                             {
+                                bool isPiloting = false;
                                 foreach (GlobalStructureInfo item in Structs.globalStructures[storedInfo[seqNr].PlayerInfo.playfield])
                                 {
                                     if (item.pilotId == storedInfo[seqNr].PlayerInfo.entityId)
                                     {
+                                        isPiloting = true;
                                         if (item.powered)
                                         {
+                                            radarData StoreThisInfo = new radarData();
                                             StoreThisInfo = storedInfo[seqNr];
                                             StoreThisInfo.structsList = Structs;
                                             StoreThisInfo.piloting = item;
                                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                                             storedInfo[CurrentSeqNr] = StoreThisInfo;
-                                            LogFile("debug", "StructsInfo Stored");
                                             GameAPI.Game_Request(CmdId.Request_Structure_BlockStatistics, (ushort)CurrentSeqNr, new Eleon.Modding.Id(item.id));
-                                            LogFile("debug", "Request " + CurrentSeqNr + " Sent");
-                                            storedInfo.Remove(seqNr);
+                                            try
+                                            {
+                                                storedInfo.Remove(seqNr);
+                                            }
+                                            catch { }
                                         }
                                         else
                                         {
                                             GameAPI.Game_Request(CmdId.Request_InGameMessage_SinglePlayer, (ushort)CmdId.Request_InGameMessage_SinglePlayer, new IdMsgPrio(storedInfo[seqNr].PlayerInfo.entityId, "Vessel is Powered Down", 1, 5));
-                                            LogFile("debug", "Request " + CmdId.Request_InGameMessage_SinglePlayer + " Sent");
-                                            storedInfo.Remove(seqNr);
+                                            try
+                                            {
+                                                storedInfo.Remove(seqNr);
+                                            }
+                                            catch { }
                                         }
                                     }
                                 }
-                            }
-                            /*
-                                LogFile("debug", "Ents Received");
-                            foreach (string playfieldName in Structs.globalStructures.Keys)
-                            {
-
-                                foreach (GlobalStructureInfo item in Structs.globalStructures[playfieldName])
+                                if (isPiloting == false)
                                 {
-                                    if (item.pilotId == 0)
-                                    { }
-                                    else
-                                    {
-                                        GameAPI.Game_Request(CmdId.Request_Structure_BlockStatistics, 113, new Eleon.Modding.Id(item.id));
-                                    }
-                                    LogFile("pfEntity", Convert.ToString(item.id) + " " +Convert.ToString(item.name) + "  Type=" + Convert.ToString(item.type) + "  CoreType=" + Convert.ToString(item.coreType) + "  Pilot=" + Convert.ToString(item.pilotId) + " pos=" + item.pos.x + "," + item.pos.y + "," + item.pos.y);
+                                    GameAPI.Game_Request(CmdId.Request_InGameMessage_SinglePlayer, (ushort)CmdId.Request_InGameMessage_SinglePlayer, new IdMsgPrio(storedInfo[seqNr].PlayerInfo.entityId, "You must be in the Pilot seat of a vessel", 1, 5));
                                     try
                                     {
-                                        foreach (int vessel in item.dockedShips)
-                                        {
-                                            LogFile("pfEntity", "     " + vessel);
-
-                                        }
+                                        storedInfo.Remove(seqNr);
                                     }
                                     catch { }
                                 }
-                            }*/
+                            }
                         }
                         break;
                     case CmdId.Event_Structure_BlockStatistics:
@@ -193,17 +211,76 @@ namespace ActiveRadar
                             {
                                 if (Entity.blockStatistics.ContainsKey(289))
                                 {
-                                    //if Player piloting vessel with radar
-                                    GameAPI.Game_Request(CmdId.Request_InGameMessage_SinglePlayer, (ushort)CmdId.Request_InGameMessage_SinglePlayer, new IdMsgPrio(storedInfo[seqNr].PlayerInfo.entityId, "Radar Present on current vessel", 1, 5));
-                                    LogFile("debug", "Request " + CmdId.Request_InGameMessage_SinglePlayer + " Sent");
-                                    List<GlobalStructureInfo> structs = storedInfo[seqNr].structsList.globalStructures[storedInfo[seqNr].PlayerInfo.playfield];
+                                    PVector3 myShip = storedInfo[seqNr].piloting.pos;
+                                    List<SensorContacts> SensorContactsList = new List<SensorContacts> { };
+                                    List<int> docked = new List<int> { };
+                                    List<double> sortableList = new List<double> { };
+                                    foreach (GlobalStructureInfo item in storedInfo[seqNr].structsList.globalStructures[storedInfo[seqNr].PlayerInfo.playfield])
+                                    {
+                                        double distance = Math.Sqrt(((myShip.x - item.pos.x) * (myShip.x - item.pos.x)) + ((myShip.y - item.pos.y) * (myShip.y - item.pos.y)) + ((myShip.z - item.pos.z) * (myShip.z - item.pos.z)));
+                                        sortableList.Add(distance);
+                                        SensorContacts contactData = new SensorContacts();
+                                        contactData.Distance = distance;
+                                        contactData.GlobalStructureInfo = item;
+                                        SensorContactsList.Add(contactData);
+                                        try
+                                        {
+                                            docked.AddRange(item.dockedShips);
+                                        }
+                                        catch { }
+                                    }
+                                    List<SensorContacts> notDocked = new List<SensorContacts> { };
+                                    foreach (SensorContacts item in SensorContactsList)
+                                    {
+                                        if (docked.Contains(item.GlobalStructureInfo.id))
+                                        {
+                                            //ships is docked = Ignore
+                                        }
+                                        else
+                                        {
+                                            notDocked.Add(item);
+                                        }
+                                    }
+                                    sortableList.Sort();
+                                    int BroadcastListCount = 0;
+                                    foreach (double distance in sortableList)
+                                    {
+                                        if (BroadcastListCount < 10)
+                                        {
+                                            foreach (SensorContacts contact in SensorContactsList)
+                                            {
+                                                if (docked.Contains(contact.GlobalStructureInfo.id))
+                                                {
+                                                }
+                                                else
+                                                {
+                                                    
+                                                    if (contact.Distance == distance)
+                                                    {
+                                                        if (contact.Distance > 2500)
+                                                        {
+                                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=" + storedInfo[seqNr].PlayerInfo.clientId + " marker add name=[UnknownContact] pos=" + Math.Round(contact.GlobalStructureInfo.pos.x) + "," + Math.Round(contact.GlobalStructureInfo.pos.y) + "," + Math.Round(contact.GlobalStructureInfo.pos.z) + " wd"));
+                                                            BroadcastListCount = BroadcastListCount + 1;
+                                                        }
+                                                        else
+                                                        {
+                                                            string RadarContact = Sanitize(contact.GlobalStructureInfo.name);
+                                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=" + storedInfo[seqNr].PlayerInfo.clientId + " marker add name="+ RadarContact +" pos=" + Math.Round(contact.GlobalStructureInfo.pos.x) + "," + Math.Round(contact.GlobalStructureInfo.pos.y) + "," + Math.Round(contact.GlobalStructureInfo.pos.z) + " wd"));
+                                                            BroadcastListCount = BroadcastListCount + 1;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                                 else
                                 {
                                     //if Player piloting vessel without radar
                                     GameAPI.Game_Request(CmdId.Request_InGameMessage_SinglePlayer, (ushort)CmdId.Request_InGameMessage_SinglePlayer, new IdMsgPrio(storedInfo[seqNr].PlayerInfo.entityId, "No Radar Present on current vessel", 1, 5));
-                                    LogFile("debug", "Request " + CmdId.Request_InGameMessage_SinglePlayer + " Sent");
-
                                 }
                             }
                         }
@@ -214,16 +291,13 @@ namespace ActiveRadar
             }
             catch (Exception ex)
             {
-                LogFile("debug", ex.Message);
-                /*
-                LogFile("debug", ex.HelpLink);
-                LogFile("debug", Convert.ToString(ex.HResult));
-                LogFile("debug", Convert.ToString(ex.InnerException));
-                LogFile("debug", ex.Source);
-                LogFile("debug", ex.StackTrace);
-                LogFile("debug", Convert.ToString(ex.TargetSite));
-                LogFile("debug", Convert.ToString(ex.Data));
-                */
+                LogFile("ERROR.txt", "Message: " + ex.Message);
+                LogFile("ERROR.txt", "Data: " + ex.Data);
+                LogFile("ERROR.txt", "HelpLink: " + ex.HelpLink);
+                LogFile("ERROR.txt", "InnerException: " + ex.InnerException);
+                LogFile("ERROR.txt", "Source: " + ex.Source);
+                LogFile("ERROR.txt", "StackTrace: " + ex.StackTrace);
+                LogFile("ERROR.txt", "TargetSite: " + ex.TargetSite);
             }
         }
         public void Game_Update()
@@ -231,6 +305,7 @@ namespace ActiveRadar
         }
         public void Game_Exit()
         {
+            //LogFile("debug.txt", "-------------------Server shut down-------------------");
         }
     }
 }

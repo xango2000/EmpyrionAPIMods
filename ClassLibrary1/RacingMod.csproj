@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\Desktop\SteamCMD\steamapps\common\Empyrion - Dedicated Server\Content\Mods\RacingMod\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -32,9 +32,11 @@
   <ItemGroup>
     <Reference Include="Mif">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\SteamApps\common\Empyrion - Dedicated Server\EmpyrionDedicated_Data\Managed\Mif.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="protobuf-net">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\SteamApps\common\Empyrion - Dedicated Server\EmpyrionDedicated_Data\Managed\protobuf-net.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

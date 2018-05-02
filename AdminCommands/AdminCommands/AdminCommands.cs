@@ -59,10 +59,6 @@ namespace AdminCommands
         {
             List<string> ExactMatches = new List<string> { };
             List<string> NearMatches = new List<string> { };
-            //if (ChatMessage.Contains(" "))
-            //{
-                //var Message = ChatMessage.Split(' ');
-                //string message1 = Message[1];
                 foreach (string SteamID in PlayerDictionary.Keys)
                 {
                     if (Convert.ToString(PlayerDictionary[SteamID].EmpyrionID) == findThis)
@@ -196,7 +192,7 @@ namespace AdminCommands
                     case CmdId.Event_ChatMessage:
                         LogFile("log.txt", "Chat received");
                         ChatInfo chatdata = (ChatInfo)data;
-                        if (chatdata.msg.StartsWith("!MODS"))
+                        if (chatdata.msg.ToLower().StartsWith("!mods"))
                         {
                             string command = "SAY '" + "AdminCommands v0.1 by Xango2000" + "'";
                             //string command = "SAY p:" + chatdata.playerId + " '" + "!MODS: Wipe-Safe Virtual Backpack v 1.0 by Xango2000" + "'";
@@ -295,134 +291,123 @@ namespace AdminCommands
                         break;
                     case CmdId.Event_TraderNPCItemSold://Automatic
                         break;
+                    case CmdId.Event_AlliancesAll: //Triggered
+                        break;
+                    case CmdId.Event_AlliancesFaction://Triggered
+                        break;
+                    case CmdId.Event_BannedPlayers://Triggered
+                        break;
+                    case CmdId.Event_ConsoleCommand://Triggered
+                        break;
+                    case CmdId.Event_Dedi_Stats://Triggered
+                        break;
+                    case CmdId.Event_Entity_PosAndRot://Triggered
+                        break;
+                    case CmdId.Event_Get_Factions://Triggered
+                        break;
+                    case CmdId.Event_GlobalStructure_List://Triggered
+                        break;
+                    case CmdId.Event_NewEntityId://Triggered
+                        break;
+                    case CmdId.Event_Player_Credits://Triggered
+                        break;
+                    case CmdId.Event_Player_GetAndRemoveInventory://Triggered
+                        break;
+                    case CmdId.Event_Player_Info://Triggered
+                        LogFile("log.txt", "Player Info Triggered");
+                        GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "player info triggered" + "'"));
+                        PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
+                        PlayerDictionary[PlayerInfoReceived.steamId] = PlayerData.playerData(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
+
+                        if (SeqNrDict[seqNr].anything is Eleon.Modding.Id)
+                        {
+                            Id IdObject = (Id)SeqNrDict[seqNr].anything;
+                            SeqNrDict.Remove(seqNr);
+                            //IdObject.id
+                        }
+                        else if (SeqNrDict[seqNr].anything is Eleon.Modding.ChatInfo)
+                        {
+                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "correct type received" + "'"));
+                            ChatInfo chatData = (ChatInfo)SeqNrDict[seqNr].anything;
+                            if (chatData.msg.StartsWith("/find"))
+                            {
+                                string[] findThis = chatData.msg.Split(new[] { ' ' }, 2);
+                                List<string> Target = NameFragment(findThis[1]);
+                                if (Target.Count == 0) //Error
+                                {
+                                    string nomsg = "No Players Found";
+                                    GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 10));
+                                }
+                                else //Actual player's Empyrion ID
+                                {
+                                    foreach (string SID in PlayerDictionary.Keys)
+                                    {
+                                        if (Target.Contains(SID))
+                                        {
+                                            Players SpecificTarget = PlayerDictionary[SID];
+                                            string msg = "[" + SpecificTarget.FactionID + "]" + SpecificTarget.PlayerName + " @" + SpecificTarget.Playfield + " " + SpecificTarget.x + "," + SpecificTarget.y + "," + SpecificTarget.z + " #" + SpecificTarget.EmpyrionID;
+                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + msg + "'"));
+                                        }
+                                        else
+                                        {
+                                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Contains=False'"));
+                                        };
+                                    }
+                                }
+                                SeqNrDict.Remove(seqNr);
+                            }
+                            else if (chatData.msg.StartsWith("/kick"))
+                            {
+                                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "kick received" + "'"));
+                                string[] findThis = chatData.msg.Split(new[] { ' ' }, 3);
+                                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "split" + "'"));
+                                List<string> Target = NameFragment(findThis[1]);
+                                if (Target.Count == 0) //Error
+                                {
+                                    string nomsg = "No Players Found";
+                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + nomsg + "'"));
+                                    GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 5));
+                                }
+                                else if (Target.Count == 1)
+                                {
+                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "attempting to kick" + "'"));
+                                    GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "kicking: " + Target[0], 0, 5));
+                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("kick " + Target[0] + " '" + findThis[2] + "'"));
+                                }
+                                SeqNrDict.Remove(seqNr);
+                            }
+                            else
+                            {
+                                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "Nothing Happened" + "'"));
+                                GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Nothing Happened", 0, 10));
+                            }
+                            SeqNrDict.Remove(seqNr);
+                        }
+                        break;
+                    case CmdId.Event_Player_Inventory://Triggered
+                        break;
+                    case CmdId.Event_Player_ItemExchange://Triggered
+                        break;
+                    case CmdId.Event_Player_List://Triggered
+                        break;
+                    case CmdId.Event_Playfield_Entity_List://Triggered
+                        break;
+                    case CmdId.Event_Playfield_List://Triggered
+                        break;
+                    case CmdId.Event_Playfield_Stats://Triggered
+                        break;
+                    case CmdId.Event_Structure_BlockStatistics://Triggered
+                        break;
+                    case CmdId.Event_Ok://Other?
+                        break;
+                    case CmdId.Event_Error://Other?
+                        ErrorInfo err = (ErrorInfo)data;
+                        ErrorType err2 = (ErrorType)data;
+                        LogFile("ERROR.txt", "Event_ERROR: " + Convert.ToString(err2) + ": " + Convert.ToString(err));
+
+                        break;
                     default:
                         break;
-
-                }
-                if (SeqNrDict.ContainsKey(seqNr))
-                {
-                    if (SeqNrDict[seqNr].requestID == cmdId)
-                        switch (cmdId)
-                        {
-
-                            case CmdId.Event_AlliancesAll: //Triggered
-                                break;
-                            case CmdId.Event_AlliancesFaction://Triggered
-                                break;
-                            case CmdId.Event_BannedPlayers://Triggered
-                                break;
-                            case CmdId.Event_ConsoleCommand://Triggered
-                                break;
-                            case CmdId.Event_Dedi_Stats://Triggered
-                                break;
-                            case CmdId.Event_Entity_PosAndRot://Triggered
-                                break;
-                            case CmdId.Event_Get_Factions://Triggered
-                                break;
-                            case CmdId.Event_GlobalStructure_List://Triggered
-                                break;
-                            case CmdId.Event_NewEntityId://Triggered
-                                break;
-                            case CmdId.Event_Player_Credits://Triggered
-                                break;
-                            case CmdId.Event_Player_GetAndRemoveInventory://Triggered
-                                break;
-                            case CmdId.Event_Player_Info://Triggered
-                                LogFile("log.txt", "Player Info Triggered");
-                                GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "player info triggered" + "'"));
-                                PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
-                                PlayerDictionary[PlayerInfoReceived.steamId] = PlayerData.playerData(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
-                                
-                                if (SeqNrDict[seqNr].anything  is Eleon.Modding.Id)
-                                {
-                                    Id IdObject = (Id)SeqNrDict[seqNr].anything;
-                                    SeqNrDict.Remove(seqNr);
-                                    //IdObject.id
-                                }
-                                else if (SeqNrDict[seqNr].anything  is Eleon.Modding.ChatInfo)
-                                {
-                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "correct type received" + "'"));
-                                    ChatInfo chatData = (ChatInfo)SeqNrDict[seqNr].anything;
-                                    if (chatData.msg.StartsWith("/find"))
-                                    {
-                                        string[] findThis = chatData.msg.Split(new[] { ' ' }, 2);
-                                        List<string> Target = NameFragment(findThis[1]);
-                                        if (Target.Count == 0) //Error
-                                        {
-                                            string nomsg = "No Players Found";
-                                            GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 10));
-                                        }
-                                        else //Actual player's Empyrion ID
-                                        {
-                                            foreach (string SID in PlayerDictionary.Keys)
-                                            {
-                                                if (Target.Contains(SID))
-                                                {
-                                                    Players SpecificTarget = PlayerDictionary[SID];
-                                                    string msg = "[" + SpecificTarget.FactionID + "]" + SpecificTarget.PlayerName + " @" + SpecificTarget.Playfield + " " + SpecificTarget.x + "," + SpecificTarget.y + "," + SpecificTarget.z + " #" + SpecificTarget.EmpyrionID;
-                                                    GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " '" + msg + "'"));
-                                                }
-                                                else
-                                                {
-                                                    //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("SAY p:" + PlayerInfoReceived.entityId + " 'Target.Contains=False'"));
-                                                };
-                                            }
-                                        }
-                                        SeqNrDict.Remove(seqNr);
-                                    }
-                                    else if (chatData.msg.StartsWith("/kick"))
-                                    {
-                                        GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "kick received" + "'"));
-                                        string[] findThis = chatData.msg.Split(new[] { ' ' }, 3);
-                                        GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "split" + "'"));
-                                        List<string> Target = NameFragment(findThis[1]);
-                                        if (Target.Count == 0) //Error
-                                        {
-                                            string nomsg = "No Players Found";
-                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + nomsg + "'"));
-                                            GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, nomsg, 0, 5));
-                                        }
-                                        else if (Target.Count == 1)
-                                        {
-                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "attempting to kick" + "'"));
-                                            GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "kicking: " + Target[0], 0, 5));
-                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("kick " + Target[0] + " '" + findThis[2] + "'"));
-                                        }
-                                        SeqNrDict.Remove(seqNr);
-                                    }
-                                    else
-                                    {
-                                        GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "Nothing Happened" + "'"));
-                                        GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CmdId.Request_ShowDialog_SinglePlayer, new Eleon.Modding.IdMsgPrio(PlayerInfoReceived.entityId, "Nothing Happened", 0, 10));
-                                    }
-                                    SeqNrDict.Remove(seqNr);
-                                }
-                                break;
-                            case CmdId.Event_Player_Inventory://Triggered
-                                break;
-                            case CmdId.Event_Player_ItemExchange://Triggered
-                                break;
-                            case CmdId.Event_Player_List://Triggered
-                                break;
-                            case CmdId.Event_Playfield_Entity_List://Triggered
-                                break;
-                            case CmdId.Event_Playfield_List://Triggered
-                                break;
-                            case CmdId.Event_Playfield_Stats://Triggered
-                                break;
-                            case CmdId.Event_Structure_BlockStatistics://Triggered
-                                break;
-                            case CmdId.Event_Ok://Other?
-                                break;
-                            case CmdId.Event_Error://Other?
-                                ErrorInfo err = (ErrorInfo)data;
-                                ErrorType err2 = (ErrorType)data;
-                                LogFile("ERROR.txt", "Event_ERROR: " + Convert.ToString(err2) + ": " + Convert.ToString(err));
-
-                                break;
-                            default:
-                                break;
-                        }
                 }
             }
             catch (Exception ex)
@@ -434,10 +419,10 @@ namespace AdminCommands
                 LogFile("ERROR.txt", "Exception: " + ex.Source);
                 LogFile("ERROR.txt", "Exception: " + ex.StackTrace);
                 LogFile("ERROR.txt", "Exception: " + ex.TargetSite);
-            }
-        }
-            
-        public void Game_Update()
+    }
+}
+
+public void Game_Update()
         {
         }
         public void Game_Exit()
