@@ -14,17 +14,17 @@ namespace ActiveRadar
     {
         ModGameAPI GameAPI;
         public string ModVersion = "ActiveRadar v1.0.2";
+        public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         public Dictionary<int, radarData> storedInfo = new Dictionary<int, radarData> { };
         public int CurrentSeqNr = 500;
 
         private void LogFile(string FileName, string FileData)
         {
-            if (!System.IO.File.Exists("Content\\Mods\\ActiveRadar\\" + FileName))
+            if (!System.IO.File.Exists(ModFolder +"\\" + FileName))
             {
-                System.IO.File.Create("Content\\Mods\\ActiveRadar\\" + FileName);
+                System.IO.File.Create(ModFolder + "\\" + FileName);
             }
-            string FileData2 = FileData + Environment.NewLine;
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName, FileData2);
+            System.IO.File.AppendAllText(ModFolder + "\\" + FileName, FileData + Environment.NewLine);
         }
 
         public class radarData
@@ -73,6 +73,7 @@ namespace ActiveRadar
             GameAPI = gameAPI;
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\debug.txt", "");
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\ERROR.txt", "");
+            LogFile("test.txt", "Test Success");
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
