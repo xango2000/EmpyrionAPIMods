@@ -13,19 +13,21 @@ namespace ActiveRadar
     public class MyEmpyrionMod : ModInterface
     {
         ModGameAPI GameAPI;
-        public string ModVersion = "ActiveRadar v1.0.2";
-        public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        public string ModVersion = "ActiveRadar v0.0.2";
         public Dictionary<int, radarData> storedInfo = new Dictionary<int, radarData> { };
         public int CurrentSeqNr = 500;
+        //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
         private void LogFile(string FileName, string FileData)
         {
-            if (!System.IO.File.Exists(ModFolder +"\\" + FileName))
+            if (!System.IO.File.Exists("Content\\Mods\\ActiveRadar\\" + FileName))
             {
-                System.IO.File.Create(ModFolder + "\\" + FileName);
+                System.IO.File.Create("Content\\Mods\\ActiveRadar\\" + FileName);
             }
-            System.IO.File.AppendAllText(ModFolder + "\\" + FileName, FileData + Environment.NewLine);
+            string FileData2 = FileData + Environment.NewLine;
+            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName, FileData2);
         }
+        //System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName, FileData2);
 
         public class radarData
         {
@@ -73,7 +75,7 @@ namespace ActiveRadar
             GameAPI = gameAPI;
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\debug.txt", "");
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\ERROR.txt", "");
-            LogFile("test.txt", "Test Success");
+            //LogFile("test.txt", "Test Success");
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
@@ -84,7 +86,7 @@ namespace ActiveRadar
 
                     case CmdId.Event_ChatMessage:
                         ChatInfo chatInfo = (ChatInfo)data;
-                        if (chatInfo.msg.StartsWith("/scan"))
+                        if (chatInfo.msg.ToLower().StartsWith("/scan"))
                         {
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                             radarData StoreThisInfo = new radarData();
@@ -101,7 +103,7 @@ namespace ActiveRadar
                                 storedInfo.Add(CurrentSeqNr, StoreThisInfo);
                             }
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(chatInfo.playerId));
-                        }else if(chatInfo.msg.StartsWith("!mods"))
+                        } else if (chatInfo.msg.ToLower().StartsWith("!mods"))
                         {
                             radarData StoreThisInfo = new radarData();
                             StoreThisInfo.chatData = chatInfo;
@@ -123,6 +125,7 @@ namespace ActiveRadar
                                     CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                                     storedInfo[CurrentSeqNr] = StoreThisInfo;
                                     GameAPI.Game_Request(CmdId.Request_GlobalStructure_Update, (ushort)CurrentSeqNr, new Eleon.Modding.PString(playerInfo.playfield));
+                                    try { GameAPI.Game_Request(CmdId.Request_Playfield_Entity_List, (ushort)CurrentSeqNr, new Eleon.Modding.PString(playerInfo.playfield));}catch { }
                                     try
                                     {
                                         storedInfo.Remove(seqNr);
@@ -144,20 +147,29 @@ namespace ActiveRadar
                         }
                         break;
                     case CmdId.Event_Playfield_Entity_List:
-                        if (seqNr == 112)
+                        PlayfieldEntityList pfEntsList = (PlayfieldEntityList)data;
+                        //LogFile("debug.txt", "Ents Received");
+                        foreach (var entity in pfEntsList.entities)
                         {
-                            PlayfieldEntityList pfEntsList = (PlayfieldEntityList)data;
-                            LogFile("debug.txt", "Ents Received");
-                            foreach (var entity in pfEntsList.entities)
-                            {
-                                LogFile("pfEntity", Convert.ToString(entity.id));
-                            }
+                            LogFile("pfEntity.txt", Convert.ToString(entity.id) + " " + entity.pos.x + "," + entity.pos.y + "," + entity.pos.z);
+                            //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=1 marker add name=[Blank] pos=" + Math.Round(entity.pos.x) + "," + Math.Round(entity.pos.y - 1) + "," + Math.Round(entity.pos.z) + " wd"));
                         }
                         break;
                     case CmdId.Event_GlobalStructure_List:
                         if (storedInfo.ContainsKey(seqNr))
                         {
                             GlobalStructureList Structs = (GlobalStructureList)data;
+                            //start test code
+                            /*
+                            foreach (GlobalStructureInfo info in Structs.globalStructures[storedInfo[seqNr].PlayerInfo.playfield])
+                            {
+                                foreach (int ship in info.dockedShips)
+                                {
+                                    LogFile("docked.txt", Convert.ToString(ship));
+                                }
+                            }*/
+                            //end test code
+
                             if (Structs.globalStructures.Keys.Contains(storedInfo[seqNr].PlayerInfo.playfield))
                             {
                                 bool isPiloting = false;
@@ -201,6 +213,8 @@ namespace ActiveRadar
                                     }
                                     catch { }
                                 }
+
+                                
                             }
                         }
                         break;
@@ -236,6 +250,7 @@ namespace ActiveRadar
                                         if (docked.Contains(item.GlobalStructureInfo.id))
                                         {
                                             //ships is docked = Ignore
+                                            
                                         }
                                         else
                                         {
@@ -260,13 +275,13 @@ namespace ActiveRadar
                                                     {
                                                         if (contact.Distance > 2500)
                                                         {
-                                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=" + storedInfo[seqNr].PlayerInfo.clientId + " marker add name=[UnknownContact] pos=" + Math.Round(contact.GlobalStructureInfo.pos.x) + "," + Math.Round(contact.GlobalStructureInfo.pos.y) + "," + Math.Round(contact.GlobalStructureInfo.pos.z) + " wd"));
+                                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=" + storedInfo[seqNr].PlayerInfo.clientId + " marker add name=[UnknownContact] pos=" + Math.Round(contact.GlobalStructureInfo.pos.x) + "," + Math.Round(contact.GlobalStructureInfo.pos.y-1) + "," + Math.Round(contact.GlobalStructureInfo.pos.z) + " wd"));
                                                             BroadcastListCount = BroadcastListCount + 1;
                                                         }
                                                         else
                                                         {
                                                             string RadarContact = Sanitize(contact.GlobalStructureInfo.name);
-                                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=" + storedInfo[seqNr].PlayerInfo.clientId + " marker add name="+ RadarContact +" pos=" + Math.Round(contact.GlobalStructureInfo.pos.x) + "," + Math.Round(contact.GlobalStructureInfo.pos.y) + "," + Math.Round(contact.GlobalStructureInfo.pos.z) + " wd"));
+                                                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=" + storedInfo[seqNr].PlayerInfo.clientId + " marker add name="+ RadarContact +" pos=" + Math.Round(contact.GlobalStructureInfo.pos.x) + "," + Math.Round(contact.GlobalStructureInfo.pos.y-1) + "," + Math.Round(contact.GlobalStructureInfo.pos.z) + " wd"));
                                                             BroadcastListCount = BroadcastListCount + 1;
                                                         }
                                                     }

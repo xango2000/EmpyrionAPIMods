@@ -9,21 +9,14 @@ namespace VirtualBackpack
 {
     public class VirtualBackpack : ModInterface
     {
-        private IDictionary<int, ItemStack[]> vBackpackDictionary = new Dictionary<int, ItemStack[]>() { };
-        private ItemStack[] EmptyExchange = new ItemStack[0];
-        private Dictionary<int, string> BackpackChatDictionary = new Dictionary<int, string>() { };
-        private Dictionary<int, string> ItemExchangeSwitch = new Dictionary<int, string>() { };
-        private Dictionary<string, Players> PlayerDictionary = new Dictionary<string, Players> { };
-#pragma warning disable 0649
-        public static List<Int32> LogonList = new List<Int32>();
-#pragma warning restore 0649
-        ushort SeqNrCounter = 1500;
-        Dictionary<ushort, TrackData> SeqNrDict = new Dictionary<ushort, TrackData> { };
-        ushort NewSeqNr = 1500;
-
         ModGameAPI GameAPI;
+        public string ModVersion = "VirtualBackpack v2.0.0";
+        public Dictionary<int, requestData> storedRequest = new Dictionary<int, requestData> { };
+        public int CurrentSeqNr = 500;
+        public Dictionary<int, onlinePlayers> LongtermStorage = new Dictionary<int, onlinePlayers> { };
+        //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-        private void LogFile(String FileName, String FileData)
+        private void LogFile(string FileName, string FileData)
         {
             if (!System.IO.File.Exists("Content\\Mods\\VirtualBackpack\\" + FileName))
             {
@@ -33,86 +26,61 @@ namespace VirtualBackpack
             System.IO.File.AppendAllText("Content\\Mods\\VirtualBackpack\\" + FileName, FileData2);
         }
 
-        public ItemStack[] buildItemStack(string filename)
+        public class requestData
         {
-            string[] bagLines = System.IO.File.ReadAllLines(filename);
+            public ChatInfo chatData;
+            public GlobalStructureList structsList;
+            public IdStructureBlockInfo vesselInfo;
+            public PlayerInfo PlayerInfo;
+            public GlobalStructureInfo piloting;
+            public Id ID;
+        }
+
+        public class onlinePlayers
+        {
+            public PlayerInfo PlayerInfo;
+            public ItemStack[] Backpack;
+            public ItemStack[] vBackpack;
+            public ItemStack[] Toolbar;
+        }
+
+        public ItemStack[] buildItemStack(string fileName)
+        {
+            string[] bagLines = System.IO.File.ReadAllLines(fileName);
             int itemStackSize = bagLines.Count();
             ItemStack[] itStack = new ItemStack[itemStackSize];
             for (int i = 0; i < itemStackSize; ++i)
             {
                 string[] bagLinesSplit = bagLines[i].Split(',');
-                itStack[i] = new ItemStack(Convert.ToInt32(bagLinesSplit[1]), Convert.ToInt32(bagLinesSplit[2]));
+                itStack[i] = new ItemStack();
                 itStack[i].slotIdx = Convert.ToByte(bagLinesSplit[0]);
+                itStack[i].id = Convert.ToByte(bagLinesSplit[1]);
+                itStack[i].count = Convert.ToByte(bagLinesSplit[2]);
                 itStack[i].ammo = Convert.ToInt32(bagLinesSplit[3]);
                 itStack[i].decay = Convert.ToInt32(bagLinesSplit[4]);
             }
             return itStack;
         }
 
-        public struct Players
+
+        public int SeqNrGenerator(int LastSeqNr)
         {
-            public string SteamID;
-            public int Admin;
-            public int EmpyrionID;
-            public int FactionID;
-            public string PlayerName;
-            public string Playfield;
-            public float x;
-            public float y;
-            public float z;
-            public int ClientID;
-        }
-        public class PlayerData
-        {
-            public static Players playerData(string steamID, int admin, int empyrionID, int factionID, string playername, string playfield, float coordX, float coordY, float coordZ, int clientID)
+            bool Fail = false;
+            int newSeqNr = 500;
+            do
             {
-                Players NewPlayer = new Players();
-                NewPlayer.SteamID = steamID;
-                NewPlayer.Admin = admin;
-                NewPlayer.EmpyrionID = empyrionID;
-                NewPlayer.FactionID = factionID;
-                NewPlayer.PlayerName = playername;
-                NewPlayer.Playfield = playfield;
-                NewPlayer.x = coordX;
-                NewPlayer.y = coordY;
-                NewPlayer.z = coordZ;
-                NewPlayer.ClientID = clientID;
-                return NewPlayer;
-            }
-        }
-        public ushort GetNewSeqNr()
-        {
-            if (SeqNrCounter == (ushort)35000)
-            {
-                SeqNrCounter = (ushort)1500;
-            }
-            else
-            {
-                SeqNrCounter = (ushort)(SeqNrCounter + 1);
-            }
-            return SeqNrCounter;
-        }
-        public struct TrackData
-        {
-            public ushort seqnr;
-            public object anything;
-            public Eleon.Modding.CmdId requestID;
-        }
-        public class Request
-        {
-            public static TrackData SeqNrTracker(Eleon.Modding.CmdId RequestID, ushort seqNr, object Anything)
-            {
-                TrackData NewData = new TrackData();
-                NewData.seqnr = seqNr;
-                NewData.anything = Anything;
-                NewData.requestID = RequestID;
-                return NewData;
-            }
+                if (LastSeqNr > 65530)
+                {
+                    LastSeqNr = 500;
+                }
+                newSeqNr = LastSeqNr + 1;
+                if (storedRequest.ContainsKey(newSeqNr)) { Fail = true; }
+            } while (Fail == true);
+            return newSeqNr;
         }
 
         public void Game_Start(ModGameAPI gameAPI)
         {
-            LogFile("log.txt", "Mod Loaded");
             GameAPI = gameAPI;
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
@@ -122,135 +90,69 @@ namespace VirtualBackpack
                 switch (cmdId)
                 {
                     case CmdId.Event_Player_Connected:
-                        Id pc = (Id)data;
-                        LogonList.Add(pc.id);
-                        GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1179, new Id(pc.id));
+                        Id PlayerConnected = (Id)data;
+                        CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
+                        if (LongtermStorage.ContainsKey(PlayerConnected.id))
+                        {
+                        }
+                        else
+                        {
+                            requestData StoreThisInfo = new requestData();
+                            //StoreThisInfo = storedRequest[seqNr];
+                            StoreThisInfo.ID = PlayerConnected;
+                            CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
+                            storedRequest[CurrentSeqNr] = StoreThisInfo;
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(PlayerConnected.id));
+                        }
                         break;
                     case CmdId.Event_Player_Disconnected:
                         Id pd = (Id)data;
-                        LogFile("log.txt", "Player " + pd.id + " DisConnected");
-                        vBackpackDictionary.Remove(pd.id);
                         break;
                     case CmdId.Event_Player_Info:
                         PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
-                        PlayerDictionary[PlayerInfoReceived.steamId] = PlayerData.playerData(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
-                        if (seqNr == 1179)
-                        {
-                            if (LogonList.Contains(PlayerInfoReceived.entityId))
-                            {
-                                LogonList.Remove(PlayerInfoReceived.entityId);
-                                if (vBackpackDictionary.ContainsKey(PlayerInfoReceived.entityId))
-                                { }
-                                else
-                                {
-                                    try { System.IO.Directory.CreateDirectory("Content\\Mods\\VirtualBackpack\\players"); } catch { };
-                                    try { System.IO.Directory.CreateDirectory("Content\\Mods\\VirtualBackpack\\players\\SID" + PlayerInfoReceived.steamId); } catch { };
-                                    try { System.IO.Directory.CreateDirectory("Content\\Mods\\VirtualBackpack\\players\\EID" + PlayerInfoReceived.entityId); } catch { };
-                                    try
-                                    {
-                                        if (System.IO.File.Exists("Content\\Mods\\VirtualBackpack\\players\\SID" + PlayerInfoReceived.steamId + "\\VirtualBackpack.txt"))
-                                        {
-                                            ItemStack[] itStack = buildItemStack("Content\\Mods\\VirtualBackpack\\players\\SID" + PlayerInfoReceived.steamId + "\\VirtualBackpack.txt");
-                                            vBackpackDictionary.Add(PlayerInfoReceived.entityId, itStack);
-                                        }
-                                        else
-                                        {
-                                            try { System.IO.File.Create("Content\\Mods\\VirtualBackpack\\players\\SID" + PlayerInfoReceived.steamId + "\\VirtualBackpack.txt"); } catch { };
-                                            ItemStack[] itStack = buildItemStack("Content\\Mods\\VirtualBackpack\\players\\EID" + PlayerInfoReceived.entityId + "\\VirtualBackpack.txt");
-                                            vBackpackDictionary.Add(PlayerInfoReceived.entityId, itStack);
-                                        }
-                                    }
-                                    catch { System.IO.File.Create("Content\\Mods\\VirtualBackpack\\players\\SID" + PlayerInfoReceived.steamId + "\\VirtualBackpack.txt"); }; //New player, create backpack... i think this will work
-                                    LogFile("log.txt", "Player " + PlayerInfoReceived.entityId + " Connected");
-                                }
-                            }
-                        }
-                        if (seqNr == 1178)
-                        {
-                            if (ItemExchangeSwitch.ContainsKey(PlayerInfoReceived.entityId))
-                            {
-                                if (ItemExchangeSwitch[PlayerInfoReceived.entityId].StartsWith("/xbp"))
-                                {
+                        onlinePlayers PlayerData = new onlinePlayers { };
+                        PlayerData.PlayerInfo = PlayerInfoReceived;
+                        LongtermStorage.Add(PlayerInfoReceived.clientId, PlayerData);
 
-                                    //LogFile("log.txt", seqNr + " Triggered");
-                                    if (vBackpackDictionary.ContainsKey(PlayerInfoReceived.entityId))
-                                    {
-                                        GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", vBackpackDictionary[PlayerInfoReceived.entityId]));
-                                    }
-                                    else
-                                    {
-                                        if (System.IO.File.Exists("Content\\Mods\\VirtualBackpack\\players\\EID" + Convert.ToString(PlayerInfoReceived.entityId) + "\\VirtualBackpack.txt") == true)
-                                        {
-                                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", EmptyExchange));
-                                        }
-                                        else
-                                        {
-                                            System.IO.File.Create("Content\\Mods\\VirtualBackpack\\players\\EID" + Convert.ToString(PlayerInfoReceived.entityId) + "\\VirtualBackpack.txt");
-                                            EmptyExchange = buildItemStack("Content\\Mods\\VirtualBackpack\\players\\EID" + Convert.ToString(PlayerInfoReceived.entityId) + "\\VirtualBackpack.txt");
-                                            GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CmdId.Request_Player_ItemExchange, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Inventory Space, Yay!", "Save", EmptyExchange));
-                                        }
-                                    }
+                        if (storedRequest.ContainsKey(seqNr))
+                        {
+                            PlayerInfo playerInfo = (PlayerInfo)data;
+                            if (storedRequest[seqNr].chatData.msg == "/vb")
+                            {
+                                if (storedRequest[seqNr].chatData.playerId == playerInfo.entityId)
+                                {
+                                    onlinePlayers StoreThisInfo = new onlinePlayers();
+                                    StoreThisInfo = LongtermStorage[seqNr];
+                                    StoreThisInfo.PlayerInfo = playerInfo;
+                                    CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
+                                    LongtermStorage[CurrentSeqNr] = StoreThisInfo;
                                 }
                             }
                         }
-                        break;
+
+                                    break;
                     case CmdId.Event_Player_ItemExchange:
                         ItemExchangeInfo exchangeInfo = (ItemExchangeInfo)data;
-                        if (ItemExchangeSwitch.ContainsKey(exchangeInfo.id))
-                        {
-                            var Message = ItemExchangeSwitch[exchangeInfo.id].Split(new[] { ' ' }, 3);
-
-                            if (Message[0].StartsWith("/xbp"))
-                            {
-                                ItemExchangeSwitch[exchangeInfo.id] = "blank";
-                                string speakerSteam = "";
-                                foreach (string SteamID in PlayerDictionary.Keys)
-                                {
-                                    if (PlayerDictionary[SteamID].EmpyrionID == exchangeInfo.id)
-                                    {
-                                        speakerSteam = SteamID;
-                                    }
-                                }
-
-
-                                vBackpackDictionary[exchangeInfo.id] = exchangeInfo.items;
-                                System.IO.File.WriteAllText("Content\\Mods\\VirtualBackpack\\players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", string.Empty); //Old Way
-                                System.IO.File.WriteAllText("Content\\Mods\\VirtualBackpack\\players\\SID" + speakerSteam + "\\VirtualBackpack.txt", string.Empty);
-                                for (int i = 0; i <= exchangeInfo.items.Count(); i++)
-                                {
-                                    LogFile("players\\EID" + exchangeInfo.id + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
-                                    LogFile("players\\SID" + speakerSteam + "\\VirtualBackpack.txt", Convert.ToString(exchangeInfo.items[i].slotIdx) + "," + Convert.ToString(exchangeInfo.items[i].id) + "," + Convert.ToString(exchangeInfo.items[i].count) + "," + Convert.ToString(exchangeInfo.items[i].ammo) + "," + Convert.ToString(exchangeInfo.items[i].decay));
-
-                                }
-                            }
-                        }
                         break;
                     case CmdId.Event_Player_DisconnectedWaiting:
                         Id pdw = new Id();
                         LogFile("ERROR.txt", "Failed Login: " + pdw.id);
                         break;
                     case CmdId.Event_ChatMessage:
-                        ChatInfo ci = (ChatInfo)data;
-                        if (ci.msg.StartsWith("!MODS"))
+                        ChatInfo chatMessage = (ChatInfo)data;
+                        if (chatMessage.msg.ToLower().StartsWith("/backpack"))
                         {
-                            string command = "SAY p:" + ci.playerId + " '" + "!MODS: Wipe-Safe Virtual Backpack v 1.0 by Xango2000" + "'";
-                            GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString(command));
-                            LogFile("log.txt", "System.IO.Directory.GetCurrentDirectory()");
+                            CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                         }
-                        if (ci.msg.StartsWith("s! "))
+                        else if (chatMessage.msg.ToLower().StartsWith("/vb"))
                         {
-                            ci.msg = ci.msg.Remove(0, 3);
+                            CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                         }
-                        var chatmsg = ci.msg.Split(' ');
-                        chatmsg[0] = chatmsg[0].ToLower();
-                        string cimsg = string.Join(" ", chatmsg);
-                        if (cimsg.StartsWith("/xbp"))
+                        else if (chatMessage.msg.ToLower().StartsWith("/toolbar"))
                         {
-                            ItemExchangeSwitch[ci.playerId] = cimsg;
-                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)1178, new Eleon.Modding.Id(ci.playerId));
-                            LogFile("log.txt", "Type:" + ci.type + " RecipientID:" + ci.recipientEntityId + " FactionRecipientID:" + ci.recipientFactionId + " " + ci.playerId + " SAYS: " + ci.msg);
+                            CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                         }
-                        break;
+                            break;
                     case CmdId.Event_Error:
                         ErrorInfo err = (ErrorInfo)data;
                         ErrorType err2 = (ErrorType)data;
