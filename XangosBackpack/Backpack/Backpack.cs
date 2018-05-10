@@ -11,9 +11,9 @@ namespace VirtualBackpack
     {
         ModGameAPI GameAPI;
         public string ModVersion = "VirtualBackpack v2.0.0";
-        public Dictionary<int, requestData> storedRequest = new Dictionary<int, requestData> { };
+        public Dictionary<int, RequestData> storedRequest = new Dictionary<int, RequestData> { };
         public int CurrentSeqNr = 500;
-        public Dictionary<int, onlinePlayers> LongtermStorage = new Dictionary<int, onlinePlayers> { };
+        public Dictionary<int, OnlinePlayers> LongtermStorage = new Dictionary<int, OnlinePlayers> { };
         //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
         private void LogFile(string FileName, string FileData)
@@ -26,7 +26,7 @@ namespace VirtualBackpack
             System.IO.File.AppendAllText("Content\\Mods\\VirtualBackpack\\" + FileName, FileData2);
         }
 
-        public class requestData
+        public class RequestData
         {
             public ChatInfo chatData;
             public GlobalStructureList structsList;
@@ -36,7 +36,7 @@ namespace VirtualBackpack
             public Id ID;
         }
 
-        public class onlinePlayers
+        public class OnlinePlayers
         {
             public PlayerInfo PlayerInfo;
             public ItemStack[] Backpack;
@@ -44,7 +44,7 @@ namespace VirtualBackpack
             public ItemStack[] Toolbar;
         }
 
-        public ItemStack[] buildItemStack(string fileName)
+        public ItemStack[] BuildItemStack(string fileName)
         {
             string[] bagLines = System.IO.File.ReadAllLines(fileName);
             int itemStackSize = bagLines.Count();
@@ -52,12 +52,14 @@ namespace VirtualBackpack
             for (int i = 0; i < itemStackSize; ++i)
             {
                 string[] bagLinesSplit = bagLines[i].Split(',');
-                itStack[i] = new ItemStack();
-                itStack[i].slotIdx = Convert.ToByte(bagLinesSplit[0]);
-                itStack[i].id = Convert.ToByte(bagLinesSplit[1]);
-                itStack[i].count = Convert.ToByte(bagLinesSplit[2]);
-                itStack[i].ammo = Convert.ToInt32(bagLinesSplit[3]);
-                itStack[i].decay = Convert.ToInt32(bagLinesSplit[4]);
+                itStack[i] = new ItemStack
+                {
+                    slotIdx = Convert.ToByte(bagLinesSplit[0]),
+                    id = Convert.ToByte(bagLinesSplit[1]),
+                    count = Convert.ToByte(bagLinesSplit[2]),
+                    ammo = Convert.ToInt32(bagLinesSplit[3]),
+                    decay = Convert.ToInt32(bagLinesSplit[4])
+                };
             }
             return itStack;
         }
@@ -97,9 +99,11 @@ namespace VirtualBackpack
                         }
                         else
                         {
-                            requestData StoreThisInfo = new requestData();
-                            //StoreThisInfo = storedRequest[seqNr];
-                            StoreThisInfo.ID = PlayerConnected;
+                            RequestData StoreThisInfo = new RequestData
+                            {
+                                //StoreThisInfo = storedRequest[seqNr];
+                                ID = PlayerConnected
+                            };
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                             storedRequest[CurrentSeqNr] = StoreThisInfo;
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(PlayerConnected.id));
@@ -110,7 +114,7 @@ namespace VirtualBackpack
                         break;
                     case CmdId.Event_Player_Info:
                         PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
-                        onlinePlayers PlayerData = new onlinePlayers { };
+                        OnlinePlayers PlayerData = new OnlinePlayers { };
                         PlayerData.PlayerInfo = PlayerInfoReceived;
                         LongtermStorage.Add(PlayerInfoReceived.clientId, PlayerData);
 
@@ -121,7 +125,7 @@ namespace VirtualBackpack
                             {
                                 if (storedRequest[seqNr].chatData.playerId == playerInfo.entityId)
                                 {
-                                    onlinePlayers StoreThisInfo = new onlinePlayers();
+                                    OnlinePlayers StoreThisInfo = new OnlinePlayers();
                                     StoreThisInfo = LongtermStorage[seqNr];
                                     StoreThisInfo.PlayerInfo = playerInfo;
                                     CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);

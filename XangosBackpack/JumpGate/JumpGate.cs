@@ -74,19 +74,21 @@ namespace JumpGate
         }
         public class PlayerData
         {
-            public static Players playerData(string steamID, int admin, int empyrionID, int factionID, string playername, string playfield, float coordX, float coordY, float coordZ, int clientID)
+            public static Players Player(string steamID, int admin, int empyrionID, int factionID, string playername, string playfield, float coordX, float coordY, float coordZ, int clientID)
             {
-                Players NewPlayer = new Players();
-                NewPlayer.SteamID = steamID;
-                NewPlayer.Admin = admin;
-                NewPlayer.EmpyrionID = empyrionID;
-                NewPlayer.FactionID = factionID;
-                NewPlayer.PlayerName = playername;
-                NewPlayer.Playfield = playfield;
-                NewPlayer.x = coordX;
-                NewPlayer.y = coordY;
-                NewPlayer.z = coordZ;
-                NewPlayer.ClientID = clientID;
+                Players NewPlayer = new Players
+                {
+                    SteamID = steamID,
+                    Admin = admin,
+                    EmpyrionID = empyrionID,
+                    FactionID = factionID,
+                    PlayerName = playername,
+                    Playfield = playfield,
+                    x = coordX,
+                    y = coordY,
+                    z = coordZ,
+                    ClientID = clientID
+                };
                 return NewPlayer;
             }
         }
@@ -102,6 +104,7 @@ namespace JumpGate
 
         public void Game_Start(ModGameAPI gameAPI)
         {
+            GameAPI = gameAPI;
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
@@ -168,7 +171,7 @@ namespace JumpGate
                         break;
                     case CmdId.Event_Player_Info:
                         PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
-                        PlayerDictionary[PlayerInfoReceived.playerName] = PlayerData.playerData(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
+                        PlayerDictionary[PlayerInfoReceived.playerName] = PlayerData.Player(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
 
                         if (seqNr == 1176)
                         {

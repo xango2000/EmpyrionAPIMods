@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 using Eleon.Modding;
 using ProtoBuf;
 
@@ -371,10 +371,8 @@ namespace RacingMod
         public void Game_Update()
         {
             ulong ticker = GameAPI.Game_GetTickTime();
-            //LogFile("debug", Convert.ToString(ticker));
             if(ticker > (LastTicker + 100))
             {
-                //LogFile("debug", Convert.ToString(ticker));
                 if (RaceStarted == true)
                 {
                     foreach (int racer in racers)

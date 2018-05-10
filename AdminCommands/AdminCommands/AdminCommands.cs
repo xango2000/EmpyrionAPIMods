@@ -98,7 +98,7 @@ namespace AdminCommands
             //}
         }
 
-        public ItemStack[] buildItemStack(string job)
+        public ItemStack[] BuildItemStack(string job)
         {
             string[] bagLines = System.IO.File.ReadAllLines(job);
             int itemStackSize = bagLines.Count();
@@ -106,10 +106,12 @@ namespace AdminCommands
             for (int i = 0; i < itemStackSize; ++i)
             {
                 string[] bagLinesSplit = bagLines[i].Split(',');
-                itStack[i] = new ItemStack(Convert.ToInt32(bagLinesSplit[1]), Convert.ToInt32(bagLinesSplit[2]));
-                itStack[i].slotIdx = Convert.ToByte(bagLinesSplit[0]);
-                itStack[i].ammo = Convert.ToInt32(bagLinesSplit[3]);
-                itStack[i].decay = Convert.ToInt32(bagLinesSplit[4]);
+                itStack[i] = new ItemStack(Convert.ToInt32(bagLinesSplit[1]), Convert.ToInt32(bagLinesSplit[2]))
+                {
+                    slotIdx = Convert.ToByte(bagLinesSplit[0]),
+                    ammo = Convert.ToInt32(bagLinesSplit[3]),
+                    decay = Convert.ToInt32(bagLinesSplit[4])
+                };
             }
             return itStack;
         }
@@ -129,19 +131,21 @@ namespace AdminCommands
         }
         public class PlayerData
         {
-            public static Players playerData(string steamID, int admin, int empyrionID, int factionID, string playername, string playfield, float coordX, float coordY, float coordZ, int clientID)
+            public static Players Player(string steamID, int admin, int empyrionID, int factionID, string playername, string playfield, float coordX, float coordY, float coordZ, int clientID)
             {
-                Players NewPlayer = new Players();
-                NewPlayer.SteamID = steamID;
-                NewPlayer.Admin = admin;
-                NewPlayer.EmpyrionID = empyrionID;
-                NewPlayer.FactionID = factionID;
-                NewPlayer.PlayerName = playername;
-                NewPlayer.Playfield = playfield;
-                NewPlayer.x = coordX;
-                NewPlayer.y = coordY;
-                NewPlayer.z = coordZ;
-                NewPlayer.ClientID = clientID;
+                Players NewPlayer = new Players
+                {
+                    SteamID = steamID,
+                    Admin = admin,
+                    EmpyrionID = empyrionID,
+                    FactionID = factionID,
+                    PlayerName = playername,
+                    Playfield = playfield,
+                    x = coordX,
+                    y = coordY,
+                    z = coordZ,
+                    ClientID = clientID
+                };
                 return NewPlayer;
             }
         }
@@ -168,10 +172,12 @@ namespace AdminCommands
         {
             public static TrackData SeqNrTracker(Eleon.Modding.CmdId RequestID, ushort seqNr, object Anything)
             {
-                TrackData NewData = new TrackData();
-                NewData.seqnr = seqNr;
-                NewData.anything = Anything;
-                NewData.requestID = RequestID;
+                TrackData NewData = new TrackData
+                {
+                    seqnr = seqNr,
+                    anything = Anything,
+                    requestID = RequestID
+                };
                 return NewData;
             }
         }
@@ -317,7 +323,7 @@ namespace AdminCommands
                         LogFile("log.txt", "Player Info Triggered");
                         GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new Eleon.Modding.PString("say '" + "player info triggered" + "'"));
                         PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
-                        PlayerDictionary[PlayerInfoReceived.steamId] = PlayerData.playerData(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
+                        PlayerDictionary[PlayerInfoReceived.steamId] = PlayerData.Player(PlayerInfoReceived.steamId, PlayerInfoReceived.permission, PlayerInfoReceived.entityId, PlayerInfoReceived.factionId, PlayerInfoReceived.playerName, PlayerInfoReceived.playfield, Convert.ToInt32(PlayerInfoReceived.pos.x), Convert.ToInt32(PlayerInfoReceived.pos.y), Convert.ToInt32(PlayerInfoReceived.pos.z), PlayerInfoReceived.clientId);
 
                         if (SeqNrDict[seqNr].anything is Eleon.Modding.Id)
                         {

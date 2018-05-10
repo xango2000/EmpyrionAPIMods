@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2043
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mailbox", "Mailbox.csproj", "{89FB6254-C940-4925-87B5-0F6CBC370B44}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backpack", "Backpack\Backpack.csproj", "{1DB94C71-0FC9-4072-80EF-008315B0CED3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirtyItemIDParser", "..\DirtyItemIDParser\DirtyItemIDParser.csproj", "{90B4BB89-921C-4271-A07C-EC58C81DD55F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelpCommand", "..\HelpCommand\HelpCommand.csproj", "{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,14 @@ Global
 		{90B4BB89-921C-4271-A07C-EC58C81DD55F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{90B4BB89-921C-4271-A07C-EC58C81DD55F}.Release|x86.ActiveCfg = Release|Any CPU
 		{90B4BB89-921C-4271-A07C-EC58C81DD55F}.Release|x86.Build.0 = Release|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Debug|x86.Build.0 = Debug|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Release|x86.ActiveCfg = Release|Any CPU
+		{2735B51A-655B-4980-AB45-DBDB6E4CE2E6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

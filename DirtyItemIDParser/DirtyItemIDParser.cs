@@ -23,7 +23,7 @@ namespace DirtyItemIDParser
             System.IO.File.AppendAllText("Content\\Mods\\DirtyItemIDParser\\" + FileName, FileData2);
         }
 
-        public void cfgFile()
+        public void FileCFG()
         {
             if (System.IO.File.Exists("Content\\Configuration\\Config.ecf"))
             {
@@ -77,7 +77,7 @@ namespace DirtyItemIDParser
         {
             System.IO.File.WriteAllText("Content\\Mods\\DirtyItemIDParser\\blocks.csv", "");
             System.IO.File.WriteAllText("Content\\Mods\\DirtyItemIDParser\\items.csv", "");
-            cfgFile();
+            FileCFG();
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
