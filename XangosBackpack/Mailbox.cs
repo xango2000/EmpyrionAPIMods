@@ -928,6 +928,9 @@ namespace Mailbox
 
                         LogFile("ERROR.txt", "Event_ERROR: " + Convert.ToString(err2) + ": " + Convert.ToString(err));
                         break;
+                    case CmdId.Event_DialogButtonIndex:
+                        DialogBoxData boo = (DialogBoxData)data;
+                        break;
                     default:
                         break;
                 }

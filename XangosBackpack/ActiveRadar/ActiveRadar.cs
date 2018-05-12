@@ -6,6 +6,8 @@ using System.Text;
 using Eleon.Modding;
 using ProtoBuf;
 using System.Collections;
+using YamlDotNet.Serialization;
+
 
 
 namespace ActiveRadar
@@ -70,14 +72,51 @@ namespace ActiveRadar
             return sanitizeMe;
         }
 
+        //#################################################################################################### Testing Data
+        public static Contact Retrieve(String filePath)
+        {
+            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "1");
+            var input = System.IO.File.OpenText(filePath);
+            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "2");
+            var deserializer = new Deserializer();
+            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "3");
+            var Contacts = deserializer.Deserialize<Contact>(input);
+            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "4");
+            return Contacts;
+        }
+        public class Contact
+        {
+            public List<Ident> Scanned { get; set; }
+        }
+        public class Ident
+        {
+            public int ID { get; set; }
+            public int Power { get; set; }
+
+        }
+        //#################################################################################################### End Test
+
+
         public void Game_Start(ModGameAPI gameAPI)
         {
             GameAPI = gameAPI;
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\debug.txt", "");
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\ERROR.txt", "");
-            System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\pfEntity.txt", "");
+            //System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\pfEntity.txt", "");
 
-            //LogFile("test.txt", "Test Success");
+            LogFile("debug.txt", "Test Started");
+            if (System.IO.File.Exists("Content\\Mods\\ActiveRadar\\Players\\test.yaml"))
+            {
+                LogFile("Debug.txt", "File Exists");
+                Contact test = Retrieve("Content\\Mods\\ActiveRadar\\Players\\test.yaml");
+                LogFile("Debug.txt", "Done reading");
+
+                foreach (Ident item in test.Scanned)
+                {
+                    LogFile("Debug.txt", Convert.ToString(item.ID));
+                }
+            }
+
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
@@ -90,6 +129,7 @@ namespace ActiveRadar
                         ChatInfo chatInfo = (ChatInfo)data;
                         if (chatInfo.msg.ToLower().StartsWith("/scan"))
                         {
+
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                             RadarData StoreThisInfo = new RadarData();
                             if (storedInfo.ContainsKey(CurrentSeqNr))
@@ -157,7 +197,7 @@ namespace ActiveRadar
                         //LogFile("debug.txt", "Ents Received");
                         foreach (var entity in pfEntsList.entities)
                         {
-                            LogFile("pfEntity.txt", "Marker add name=" + Convert.ToString(entity.id) + " pos=" + Math.Round(entity.pos.x) + "," + Math.Round(entity.pos.y) + "," + Math.Round(entity.pos.z) + " expire=15");
+                            //LogFile("pfEntity.txt", "Marker add name=" + Convert.ToString(entity.id) + "T=" + Convert.ToString(entity.type) + " pos=" + Math.Round(entity.pos.x) + "," + Math.Round(entity.pos.y) + "," + Math.Round(entity.pos.z) + " expire=15");
                             //GameAPI.Game_Request(CmdId.Request_ConsoleCommand, (ushort)CmdId.Request_ConsoleCommand, new PString("remoteex cl=1 marker add name=[Blank] pos=" + Math.Round(entity.pos.x) + "," + Math.Round(entity.pos.y - 1) + "," + Math.Round(entity.pos.z) + " wd"));
                         }
                         break;
@@ -181,10 +221,12 @@ namespace ActiveRadar
                                 bool isPiloting = false;
                                 foreach (GlobalStructureInfo item in Structs.globalStructures[storedInfo[seqNr].PlayerInfo.playfield])
                                 {
+                                    /*
                                     if (item.id == 110007)
                                     {
                                         GameAPI.Game_Request(CmdId.Request_InGameMessage_SinglePlayer, (ushort)CmdId.Request_InGameMessage_SinglePlayer, new IdMsgPrio(storedInfo[seqNr].PlayerInfo.entityId, "BINGO!!!", 1, 5));
                                     }
+                                    */
                                     if (item.pilotId == storedInfo[seqNr].PlayerInfo.entityId)
                                     {
                                         isPiloting = true;
@@ -223,7 +265,6 @@ namespace ActiveRadar
                                     }
                                     catch { }
                                 }
-
                                 
                             }
                         }
