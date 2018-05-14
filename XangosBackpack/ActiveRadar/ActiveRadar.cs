@@ -15,7 +15,7 @@ namespace ActiveRadar
     public class MyEmpyrionMod : ModInterface
     {
         ModGameAPI GameAPI;
-        public string ModVersion = "ActiveRadar v0.0.2";
+        public string ModVersion = "ActiveRadar v0.0.3";
         public Dictionary<int, RadarData> storedInfo = new Dictionary<int, RadarData> { };
         public int CurrentSeqNr = 500;
         //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -72,30 +72,6 @@ namespace ActiveRadar
             return sanitizeMe;
         }
 
-        //#################################################################################################### Testing Data
-        public static Contact Retrieve(String filePath)
-        {
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "1");
-            var input = System.IO.File.OpenText(filePath);
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "2");
-            var deserializer = new Deserializer();
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "3");
-            var Contacts = deserializer.Deserialize<Contact>(input);
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\debug.txt", "4");
-            return Contacts;
-        }
-        public class Contact
-        {
-            public List<Ident> Scanned { get; set; }
-        }
-        public class Ident
-        {
-            public int ID { get; set; }
-            public int Power { get; set; }
-
-        }
-        //#################################################################################################### End Test
-
 
         public void Game_Start(ModGameAPI gameAPI)
         {
@@ -104,20 +80,17 @@ namespace ActiveRadar
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\ERROR.txt", "");
             //System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\pfEntity.txt", "");
 
-            LogFile("debug.txt", "Test Started");
             if (System.IO.File.Exists("Content\\Mods\\ActiveRadar\\Players\\test.yaml"))
             {
-                LogFile("Debug.txt", "File Exists");
-                Contact test = Retrieve("Content\\Mods\\ActiveRadar\\Players\\test.yaml");
-                LogFile("Debug.txt", "Done reading");
-
-                foreach (Ident item in test.Scanned)
+                KnownEntities.Contact test = KnownEntities.Retrieve("Content\\Mods\\ActiveRadar\\Players\\test.yaml");
+                foreach (KnownEntities.Ident item in test.Scanned)
                 {
                     LogFile("Debug.txt", Convert.ToString(item.ID));
                 }
+                KnownEntities.WriteYaml(903, test);
             }
-
         }
+
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
             try

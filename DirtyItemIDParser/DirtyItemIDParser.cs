@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Eleon.Modding;
 using ProtoBuf;
 using System.Collections;
@@ -11,16 +10,18 @@ namespace DirtyItemIDParser
 {
     public class MyEmpyrionMod : ModInterface
     {
-        //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        ModGameAPI GameAPI;
+        public string ModVersion = "ActiveRadar v0.0.3";
+        public string ModPath = "Content\\Mods\\DirtyItemIDParser\\";
 
         private void LogFile(string FileName, string FileData)
         {
-            if (!System.IO.File.Exists("Content\\Mods\\DirtyItemIDParser\\" + FileName))
+            if (!System.IO.File.Exists(ModPath + FileName))
             {
-                System.IO.File.Create("Content\\Mods\\DirtyItemIDParser\\" + FileName);
+                System.IO.File.Create(ModPath + FileName);
             }
             string FileData2 = FileData + Environment.NewLine;
-            System.IO.File.AppendAllText("Content\\Mods\\DirtyItemIDParser\\" + FileName, FileData2);
+            System.IO.File.AppendAllText(ModPath + FileName, FileData2);
         }
 
         public void FileCFG()
@@ -75,8 +76,9 @@ namespace DirtyItemIDParser
 
         public void Game_Start(ModGameAPI dediAPI)
         {
-            System.IO.File.WriteAllText("Content\\Mods\\DirtyItemIDParser\\blocks.csv", "");
-            System.IO.File.WriteAllText("Content\\Mods\\DirtyItemIDParser\\items.csv", "");
+            //GameAPI = gameAPI;
+            System.IO.File.WriteAllText(ModPath + "blocks.csv", "");
+            System.IO.File.WriteAllText(ModPath + "items.csv", "");
             FileCFG();
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)

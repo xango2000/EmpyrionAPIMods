@@ -71,6 +71,7 @@ namespace HelpCommand
             }
             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
             GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CurrentSeqNr, new IdMsgPrio(player.playerId, concatFileData, 1, 20));
+            //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CurrentSeqNr, new DialogBoxData(player.playerId, concatFileData, "Done", "Close"));
 
         }
 
