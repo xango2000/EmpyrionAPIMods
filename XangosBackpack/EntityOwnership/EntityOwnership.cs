@@ -11,7 +11,7 @@ namespace EntityOwnership
 {
     public class MyEmpyrionMod : ModInterface
     {
-        public string ModVersion = "EntityOwnership v0.0.1";
+        public string ModVersion = "EntityOwnership v0.0.2";
         public string ModPath = "Content\\Mods\\EntityOwnership\\";
         public string SaveGameFolder = "";
         public string SaveGameName = "";
@@ -30,7 +30,8 @@ namespace EntityOwnership
 
         public void Game_Start(ModGameAPI dediAPI)
         {
-            System.IO.File.WriteAllText(ModPath+ "debug.txt", "");
+            System.IO.File.WriteAllText(ModPath + "debug.txt", "");
+            System.IO.File.WriteAllText(ModPath + "Usefulinfo.txt", ""); 
             System.IO.File.WriteAllText(ModPath + "Entities.csv", "playfield,id,name,type,faction,blocks,devices,pos,rot,core,powered,docked,touched_time,touched_ticks,touched_name,touched_id,saved_time,saved_ticks,add_info\r\n");
 
             if (System.IO.File.Exists("dedicated.yaml"))
@@ -89,6 +90,7 @@ namespace EntityOwnership
                     System.IO.File.AppendAllText(ModPath + "\\Entities.csv", ThisFile[1] + "\r\n");
 
                 }
+                LogFile("Usefulinfo.txt", SaveGameFolder + "\\Games\\" + SaveGameName);
             }
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)

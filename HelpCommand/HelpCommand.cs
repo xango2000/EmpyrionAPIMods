@@ -70,8 +70,12 @@ namespace HelpCommand
                 concatFileData = concatFileData + line + "\r\n";
             }
             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
-            GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CurrentSeqNr, new IdMsgPrio(player.playerId, concatFileData, 1, 20));
+            //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CurrentSeqNr, new IdMsgPrio(player.playerId, concatFileData, 1, 20));
             //GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CurrentSeqNr, new DialogBoxData(player.playerId, concatFileData, "Done", "Close"));
+            GameAPI.Game_Request(CmdId.Request_ShowDialog_SinglePlayer, (ushort)CurrentSeqNr, new DialogBoxData() {
+            Id = player.playerId,
+            MsgText = concatFileData,
+            PosButtonText = "close"});
 
         }
 

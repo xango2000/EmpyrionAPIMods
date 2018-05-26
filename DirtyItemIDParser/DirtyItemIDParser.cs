@@ -10,7 +10,7 @@ namespace DirtyItemIDParser
 {
     public class MyEmpyrionMod : ModInterface
     {
-        ModGameAPI GameAPI;
+        //ModGameAPI GameAPI;
         public string ModVersion = "ActiveRadar v0.0.3";
         public string ModPath = "Content\\Mods\\DirtyItemIDParser\\";
 

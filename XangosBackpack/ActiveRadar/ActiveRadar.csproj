@@ -55,6 +55,7 @@
     <Compile Include="ActiveRadar.cs" />
     <Compile Include="KnownEntities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SectorsYaml.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

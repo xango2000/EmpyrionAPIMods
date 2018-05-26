@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Eleon.Modding;
 using ProtoBuf;
+using System.IO;
 
 
 namespace VirtualBackpack
@@ -11,19 +12,22 @@ namespace VirtualBackpack
     {
         ModGameAPI GameAPI;
         public string ModVersion = "VirtualBackpack v2.0.0";
-        public Dictionary<int, RequestData> storedRequest = new Dictionary<int, RequestData> { };
+        public string ModPath = "Content\\Mods\\VirtualBackpack\\";
+        public Dictionary<int, RequestData> SeqNrStorage = new Dictionary<int, RequestData> { };
         public int CurrentSeqNr = 500;
         public Dictionary<int, OnlinePlayers> LongtermStorage = new Dictionary<int, OnlinePlayers> { };
         //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        public bool Debug = false;
 
         private void LogFile(string FileName, string FileData)
         {
-            if (!System.IO.File.Exists("Content\\Mods\\VirtualBackpack\\" + FileName))
+            if (Debug == true)
             {
-                System.IO.File.Create("Content\\Mods\\VirtualBackpack\\" + FileName);
+                FileInfo file = new FileInfo(ModPath + FileName);
+                file.Directory.Create();
+                string FileData2 = FileData + Environment.NewLine;
+                File.AppendAllText(ModPath + FileName, FileData2);
             }
-            string FileData2 = FileData + Environment.NewLine;
-            System.IO.File.AppendAllText("Content\\Mods\\VirtualBackpack\\" + FileName, FileData2);
         }
 
         public class RequestData
@@ -44,25 +48,42 @@ namespace VirtualBackpack
             public ItemStack[] Toolbar;
         }
 
-        public ItemStack[] BuildItemStack(string fileName)
+        public ItemStack[] BuildItemStack(string job)
         {
-            string[] bagLines = System.IO.File.ReadAllLines(fileName);
+            string[] bagLines = System.IO.File.ReadAllLines(job);
             int itemStackSize = bagLines.Count();
             ItemStack[] itStack = new ItemStack[itemStackSize];
             for (int i = 0; i < itemStackSize; ++i)
             {
                 string[] bagLinesSplit = bagLines[i].Split(',');
-                itStack[i] = new ItemStack
-                {
-                    slotIdx = Convert.ToByte(bagLinesSplit[0]),
-                    id = Convert.ToByte(bagLinesSplit[1]),
-                    count = Convert.ToByte(bagLinesSplit[2]),
-                    ammo = Convert.ToInt32(bagLinesSplit[3]),
-                    decay = Convert.ToInt32(bagLinesSplit[4])
-                };
+                itStack[i] = new ItemStack(Convert.ToInt32(bagLinesSplit[1]), Convert.ToInt32(bagLinesSplit[2]));
+                itStack[i].slotIdx = Convert.ToByte(bagLinesSplit[0]);
+                itStack[i].ammo = Convert.ToInt32(bagLinesSplit[3]);
+                itStack[i].decay = Convert.ToInt32(bagLinesSplit[4]);
             }
             return itStack;
         }
+
+        /*
+        public ItemStack[] BuildItemStack(string fileName)
+        {
+            string[] bagLines = File.ReadAllLines(fileName);
+            int itemStackSize = bagLines.Count();
+            ItemStack[] itStack = new ItemStack[itemStackSize];
+            for (int i = 0; i < itemStackSize; ++i)
+            {
+                //string[] bagLinesSplit = bagLines[i].Split(',');
+                itStack[i] = new ItemStack(){
+                slotIdx = Convert.ToByte(bagLinesSplit[0]),
+                id = Convert.ToByte(bagLinesSplit[1]),
+                count = Convert.ToByte(bagLinesSplit[2]),
+                ammo = Convert.ToInt32(bagLinesSplit[3]),
+                decay = Convert.ToInt32(bagLinesSplit[4])
+                }
+            }
+            
+            return itStack;
+        }*/
 
 
         public int SeqNrGenerator(int LastSeqNr)
@@ -76,7 +97,7 @@ namespace VirtualBackpack
                     LastSeqNr = 500;
                 }
                 newSeqNr = LastSeqNr + 1;
-                if (storedRequest.ContainsKey(newSeqNr)) { Fail = true; }
+                if (SeqNrStorage.ContainsKey(newSeqNr)) { Fail = true; }
             } while (Fail == true);
             return newSeqNr;
         }
@@ -99,13 +120,13 @@ namespace VirtualBackpack
                         }
                         else
                         {
-                            RequestData StoreThisInfo = new RequestData
+                            RequestData StoreThisInfo = new RequestData()
                             {
                                 //StoreThisInfo = storedRequest[seqNr];
                                 ID = PlayerConnected
                             };
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
-                            storedRequest[CurrentSeqNr] = StoreThisInfo;
+                            SeqNrStorage[CurrentSeqNr] = StoreThisInfo;
                             GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(PlayerConnected.id));
                         }
                         break;
@@ -116,27 +137,61 @@ namespace VirtualBackpack
                         PlayerInfo PlayerInfoReceived = (PlayerInfo)data;
                         OnlinePlayers PlayerData = new OnlinePlayers { };
                         PlayerData.PlayerInfo = PlayerInfoReceived;
-                        LongtermStorage.Add(PlayerInfoReceived.clientId, PlayerData);
+                        LongtermStorage[PlayerInfoReceived.clientId] = PlayerData;
 
-                        if (storedRequest.ContainsKey(seqNr))
+                        if (SeqNrStorage.ContainsKey(seqNr))
                         {
-                            PlayerInfo playerInfo = (PlayerInfo)data;
-                            if (storedRequest[seqNr].chatData.msg == "/vb")
+                            try
                             {
-                                if (storedRequest[seqNr].chatData.playerId == playerInfo.entityId)
+                                if (SeqNrStorage[seqNr].chatData.msg == "/vb")
                                 {
-                                    OnlinePlayers StoreThisInfo = new OnlinePlayers();
-                                    StoreThisInfo = LongtermStorage[seqNr];
-                                    StoreThisInfo.PlayerInfo = playerInfo;
-                                    CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
-                                    LongtermStorage[CurrentSeqNr] = StoreThisInfo;
+                                    if (SeqNrStorage[seqNr].chatData.playerId == PlayerInfoReceived.entityId)
+                                    {
+                                        ItemStack[] Backpack = new ItemStack[] { };
+                                        if (File.Exists(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv"))
+                                        {
+                                            Backpack = BuildItemStack(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv");
+                                        }
+                                        else
+                                        {
+
+                                            FileInfo file = new FileInfo(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv");
+                                            file.Directory.Create();
+
+                                            //try { File.Create(ModPath + "Players\\" + PlayerInfoReceived.steamId); } catch { }
+                                            File.AppendAllText(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv", "");
+                                        }
+                                        RequestData StoreThisInfo = new RequestData();
+                                        StoreThisInfo = SeqNrStorage[seqNr];
+                                        StoreThisInfo.PlayerInfo = PlayerInfoReceived;
+                                        CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
+                                        SeqNrStorage[CurrentSeqNr] = StoreThisInfo;
+                                        GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CurrentSeqNr, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Storage, Yay!!", "Close", Backpack));
+                                        //GameAPI.Game_Request(CmdId.Request_Player_ItemExchange, (ushort)CurrentSeqNr, new ItemExchangeInfo(PlayerInfoReceived.entityId, "Virtual Backpack", "Extra Storage, Yay!!", "Close", SeqNrStorage[seqNr].PlayerInfo.bag));
+                                    }
                                 }
                             }
+                            catch { }
                         }
 
                                     break;
                     case CmdId.Event_Player_ItemExchange:
                         ItemExchangeInfo exchangeInfo = (ItemExchangeInfo)data;
+                        if (SeqNrStorage.ContainsKey(seqNr))
+                        {
+                            if (SeqNrStorage[seqNr].chatData.msg == "/vb")
+                            {
+                                if (SeqNrStorage[seqNr].chatData.playerId == exchangeInfo.id)
+                                {
+                                    File.WriteAllText(ModPath + "Players\\" + SeqNrStorage[seqNr].PlayerInfo.steamId + "\\VirtualBackpack.csv", "");
+                                    foreach (ItemStack Stack in exchangeInfo.items)
+                                    {
+                                        string FileData = Stack.slotIdx + "," + Stack.id + "," + Stack.count + "," + Stack.ammo + "," + Stack.decay + "\r\n";
+                                        File.AppendAllText(ModPath + "Players\\" + SeqNrStorage[seqNr].PlayerInfo.steamId + "\\VirtualBackpack.csv", FileData);
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case CmdId.Event_Player_DisconnectedWaiting:
                         Id pdw = new Id();
@@ -144,13 +199,20 @@ namespace VirtualBackpack
                         break;
                     case CmdId.Event_ChatMessage:
                         ChatInfo chatMessage = (ChatInfo)data;
+                        LogFile("Debug.txt", "Chat Message Received");
+                        LogFile("Debug.txt", chatMessage.msg.ToLower());
+
                         if (chatMessage.msg.ToLower().StartsWith("/backpack"))
                         {
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                         }
                         else if (chatMessage.msg.ToLower().StartsWith("/vb"))
                         {
+                            RequestData StoreThisInfo = new RequestData();
+                            StoreThisInfo.chatData = chatMessage;
                             CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
+                            SeqNrStorage[CurrentSeqNr] = StoreThisInfo;
+                            GameAPI.Game_Request(CmdId.Request_Player_Info, (ushort)CurrentSeqNr, new Id(chatMessage.playerId));
                         }
                         else if (chatMessage.msg.ToLower().StartsWith("/toolbar"))
                         {
@@ -168,13 +230,14 @@ namespace VirtualBackpack
             }
             catch (Exception ex)
             {
+                LogFile("ERROR.txt", "Source: " + ex.Source);
                 LogFile("ERROR.txt", "Message: " + ex.Message);
+                LogFile("ERROR.txt", "TargetSite: " + ex.TargetSite);
+                LogFile("ERROR.txt", "StackTrace: " + ex.StackTrace);
                 LogFile("ERROR.txt", "Data: " + ex.Data);
                 LogFile("ERROR.txt", "HelpLink: " + ex.HelpLink);
                 LogFile("ERROR.txt", "InnerException: " + ex.InnerException);
-                LogFile("ERROR.txt", "Source: " + ex.Source);
-                LogFile("ERROR.txt", "StackTrace: " + ex.StackTrace);
-                LogFile("ERROR.txt", "TargetSite: " + ex.TargetSite);
+                LogFile("ERROR.txt", "");
             }
         }
         public void Game_Update()

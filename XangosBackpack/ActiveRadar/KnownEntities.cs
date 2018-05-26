@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 
+
 namespace ActiveRadar
 {
     class KnownEntities
     {
+        
         public static Contact Retrieve(String filePath)
         {
             var input = System.IO.File.OpenText(filePath);
