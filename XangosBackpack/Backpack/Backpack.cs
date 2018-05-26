@@ -17,9 +17,12 @@ namespace VirtualBackpack
         public int CurrentSeqNr = 500;
         public Dictionary<int, OnlinePlayers> LongtermStorage = new Dictionary<int, OnlinePlayers> { };
         //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-        public bool Debug = false;
+        ConfigYaml config;
 
-        private void LogFile(string FileName, string FileData)
+        public bool Debug = true;
+
+        //internal YamlSerializer.Root Config { get => config; set => config = value; }
+        public void LogFile(string FileName, string FileData)
         {
             if (Debug == true)
             {
@@ -105,6 +108,12 @@ namespace VirtualBackpack
         public void Game_Start(ModGameAPI gameAPI)
         {
             GameAPI = gameAPI;
+            //config = ConfigYaml.Retrieve(ModPath + "Config.yaml");
+            LogFile("Debug.txt", "Server Starting");
+            ConfigYaml.Root config = ConfigYaml.Retrieve(ModPath + "Config.yaml");
+            //KnownEntities.Contact test = KnownEntities.Retrieve("Content\\Mods\\ActiveRadar\\Players\\test.yaml");
+            LogFile("Debug.txt", "Server Start OK");
+
         }
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
         {
@@ -148,21 +157,22 @@ namespace VirtualBackpack
                                     if (SeqNrStorage[seqNr].chatData.playerId == PlayerInfoReceived.entityId)
                                     {
                                         ItemStack[] Backpack = new ItemStack[] { };
-                                        if (File.Exists(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv"))
+                                        if (File.Exists(ModPath + "VirtualBackpacks\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv"))
                                         {
-                                            Backpack = BuildItemStack(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv");
+                                            Backpack = BuildItemStack(ModPath + "VirtualBackpacks\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv");
                                         }
                                         else
                                         {
 
-                                            FileInfo file = new FileInfo(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv");
+                                            FileInfo file = new FileInfo(ModPath + "VirtualBackpacks\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv");
                                             file.Directory.Create();
 
                                             //try { File.Create(ModPath + "Players\\" + PlayerInfoReceived.steamId); } catch { }
-                                            File.AppendAllText(ModPath + "Players\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv", "");
+                                            File.AppendAllText(ModPath + "VirtualBackpacks\\" + PlayerInfoReceived.steamId + "\\VirtualBackpack.csv", "");
                                         }
                                         RequestData StoreThisInfo = new RequestData();
                                         StoreThisInfo = SeqNrStorage[seqNr];
+                                        SeqNrStorage.Remove(seqNr);
                                         StoreThisInfo.PlayerInfo = PlayerInfoReceived;
                                         CurrentSeqNr = SeqNrGenerator(CurrentSeqNr);
                                         SeqNrStorage[CurrentSeqNr] = StoreThisInfo;
@@ -183,12 +193,13 @@ namespace VirtualBackpack
                             {
                                 if (SeqNrStorage[seqNr].chatData.playerId == exchangeInfo.id)
                                 {
-                                    File.WriteAllText(ModPath + "Players\\" + SeqNrStorage[seqNr].PlayerInfo.steamId + "\\VirtualBackpack.csv", "");
+                                    File.WriteAllText(ModPath + "VirtualBackpacks\\" + SeqNrStorage[seqNr].PlayerInfo.steamId + "\\VirtualBackpack.csv", "");
                                     foreach (ItemStack Stack in exchangeInfo.items)
                                     {
                                         string FileData = Stack.slotIdx + "," + Stack.id + "," + Stack.count + "," + Stack.ammo + "," + Stack.decay + "\r\n";
-                                        File.AppendAllText(ModPath + "Players\\" + SeqNrStorage[seqNr].PlayerInfo.steamId + "\\VirtualBackpack.csv", FileData);
+                                        File.AppendAllText(ModPath + "VirtualBackpacks\\" + SeqNrStorage[seqNr].PlayerInfo.steamId + "\\VirtualBackpack.csv", FileData);
                                     }
+                                    SeqNrStorage.Remove(seqNr);
                                 }
                             }
                         }
@@ -227,6 +238,7 @@ namespace VirtualBackpack
                     default:
                         break;
                 }
+                //ConfigYaml.WriteYaml(ModPath + "Config.yaml", config);
             }
             catch (Exception ex)
             {

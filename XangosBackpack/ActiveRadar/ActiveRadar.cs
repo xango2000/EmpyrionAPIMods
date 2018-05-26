@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,20 +17,22 @@ namespace ActiveRadar
     {
         ModGameAPI GameAPI;
         public string ModVersion = "ActiveRadar v0.0.4";
+        public string ModPath = "Content\\Mods\\ActiveRadar\\";
         public Dictionary<int, RadarData> storedInfo = new Dictionary<int, RadarData> { };
         public int CurrentSeqNr = 500;
         //public object ModFolder = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        public bool Debug = false;
 
         private void LogFile(string FileName, string FileData)
         {
-            if (!System.IO.File.Exists("Content\\Mods\\ActiveRadar\\" + FileName))
+            if (Debug == true)
             {
-                System.IO.File.Create("Content\\Mods\\ActiveRadar\\" + FileName);
+                FileInfo file = new FileInfo(ModPath + FileName);
+                file.Directory.Create();
+                string FileData2 = FileData + Environment.NewLine;
+                File.AppendAllText(ModPath + FileName, FileData2);
             }
-            string FileData2 = FileData + Environment.NewLine;
-            System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName, FileData2);
         }
-        //System.IO.File.AppendAllText("Content\\Mods\\ActiveRadar\\" + FileName, FileData2);
 
         public class RadarData
         {
@@ -79,6 +82,7 @@ namespace ActiveRadar
             //System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\debug.txt", "");
             System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\ERROR.txt", "");
             //System.IO.File.WriteAllText("Content\\Mods\\ActiveRadar\\pfEntity.txt", "");
+            
             /*
             if (System.IO.File.Exists("Content\\Mods\\ActiveRadar\\Players\\test.yaml"))
             {
@@ -88,7 +92,8 @@ namespace ActiveRadar
                     LogFile("Debug.txt", Convert.ToString(item.ID));
                 }
                 KnownEntities.WriteYaml(903, test);
-            }*/
+            }
+            */
         }
 
         public void Game_Event(CmdId cmdId, ushort seqNr, object data)
